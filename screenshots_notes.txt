@@ -1,0 +1,43 @@
+Screenshot Review Notes (2026-07-28)
+
+1. Landing page (/):
+   - Dark charcoal background with amber accents - LOOKS GOOD
+   - "Some thoughts deserve more than a memory" headline with serif font
+   - Vault and Future Self feature descriptions with icons
+   - "OUR BELIEF" section with privacy quote
+   - "Begin recording" CTA button in amber
+   - Top nav: "Echoes" brand + "Enter" button
+   - Footer: "Echoes" + "Private by default · End-to-end encrypted"
+
+2. Recording page (/app):
+   - Onboarding state showing "What did you almost say, but didn't?"
+   - Vault/Future Self mode toggle pills
+   - Large mic button with amber border
+   - Top nav with all icons, Home active
+
+3. Timeline (/timeline):
+   - Empty state: "No echoes yet." with clock icon
+   - Clean minimal design
+
+4. Collections (/collections):
+   - Shows 4 default collections (Life, Letters, Dreams, Ideas)
+   - "Auto" labels, counts showing 0
+   - "+ New" button to create custom collections
+
+5. Future Self (/future-self):
+   - Empty state: "No sealed letters yet." with lock icon
+   - Helper text about Future Self mode
+
+6. Insights (/insights):
+   - Month selector pills (July 2026 - March 2026)
+   - Empty state with sparkle icon
+   - "A quiet reflection on what you've spoken."
+
+7. Settings (/settings):
+   - Shows user: "Johnson Kuria" / johnsonkuria97@gmail.com
+   - Privacy & Encryption section with 3 items
+   - Archive Export section with "Export everything" button
+   - Danger Zone with "Delete your account"
+   - All sections look polished and consistent
+
+ALL PAGES RENDERING CORRECTLY - ZERO ERRORS
