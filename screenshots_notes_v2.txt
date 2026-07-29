@@ -1,0 +1,19 @@
+Screenshot observations v2 (ethereal redesign):
+
+Landing page:
+- Beautiful serif typography for headline, very elegant
+- Amber "memory" word glows nicely
+- Mic orb on right with concentric rings looks sacred and ethereal
+- Grain overlay adds texture
+- Dark background with subtle ambient glow is working well
+- "Enter the chamber" CTA in nav is perfect language
+- Nav has glass-morphic warm background
+
+Recording/onboarding page:
+- "What did you almost say, but didn't?" - beautiful and haunting
+- Vault/Future Self toggle pills look refined with glow
+- Recording button has pulsing ring animation - ethereal
+- Background is very dark, almost pure black - the amber glows pop beautifully
+- Overall feel: candlelit chamber, intimate, sacred
+
+Both pages look excellent. The ethereal redesign is working very well.

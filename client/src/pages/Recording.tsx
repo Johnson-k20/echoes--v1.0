@@ -2,9 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Link2 } from "lucide-react";
+import { Mic, Square, Sparkle } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "wouter";
 
 type Mode = "vault" | "future_self";
 type Ambience = "silence" | "rain" | "cafe" | "night";
@@ -25,7 +24,6 @@ export default function Recording() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [suggestedMood, setSuggestedMood] = useState<string | null>(null);
-  const [suggestedCollection, setSuggestedCollection] = useState<string | null>(null);
   const [suggestedTitle, setSuggestedTitle] = useState<string | null>(null);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
@@ -48,7 +46,6 @@ export default function Recording() {
   const createEchoMutation = trpc.echoes.create.useMutation();
   const updateEchoMutation = trpc.echoes.update.useMutation();
 
-  // Check if user has any echoes
   const recentEchoes = trpc.echoes.recent.useQuery({ limit: 1 }, { enabled: !!user });
 
   useEffect(() => {
@@ -88,7 +85,6 @@ export default function Recording() {
       setDuration(0);
       timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
 
-      // Start waveform animation
       animateWaveform();
     } catch (err) {
       toast.error("Microphone access required to record.");
@@ -115,16 +111,16 @@ export default function Recording() {
     analyser.getByteFrequencyData(data);
 
     container.innerHTML = "";
-    const barCount = 24;
+    const barCount = 32;
     for (let i = 0; i < barCount; i++) {
       const bar = document.createElement("div");
       const dataIndex = Math.floor((i / barCount) * data.length);
       const value = data[dataIndex] || 0;
-      const height = Math.max(4, (value / 255) * 60);
-      bar.className = "w-1 rounded-full bg-amber";
+      const height = Math.max(3, (value / 255) * 48);
+      bar.className = "w-[2px] rounded-full bg-amber/80";
       bar.style.height = `${height}px`;
-      bar.style.opacity = "0.6";
-      bar.style.transition = "height 0.1s ease, opacity 0.1s ease";
+      bar.style.opacity = `${0.4 + (value / 255) * 0.6}`;
+      bar.style.transition = "height 0.08s ease, opacity 0.08s ease";
       container.appendChild(bar);
     }
 
@@ -136,22 +132,17 @@ export default function Recording() {
     setIsProcessing(true);
 
     try {
-      // Upload audio to server
       const formData = new FormData();
       formData.append("file", audioBlob, `echo-${Date.now()}.webm`);
       const uploadResp = await fetch("/api/upload", { method: "POST", body: formData });
       const uploadData = await uploadResp.json();
 
-      if (!uploadData.url) {
-        throw new Error("Upload failed");
-      }
+      if (!uploadData.url) throw new Error("Upload failed");
 
-      // Transcribe
       const transcribeResult = await transcribeMutation.mutateAsync({ audioUrl: uploadData.url });
 
-      // Suggest mood and collection
       let mood = null;
-      let collection = null;
+      let collection: number | null = null;
       let echoTitle = null;
       if (transcribeResult.transcript) {
         const suggestion = await suggestMutation.mutateAsync({ transcript: transcribeResult.transcript });
@@ -164,7 +155,6 @@ export default function Recording() {
       }
 
       setSuggestedMood(mood);
-      setSuggestedCollection(echoTitle);
       setSuggestedTitle(echoTitle);
       setSelectedMood(mood);
       setSelectedCollectionId(collection);
@@ -206,7 +196,6 @@ export default function Recording() {
         unlockDate: unlockDate || undefined,
       });
 
-      // Update with AI suggestions
       if (echo.id) {
         await updateEchoMutation.mutateAsync({
           id: echo.id,
@@ -245,30 +234,31 @@ export default function Recording() {
     return "It's late.";
   };
 
-  // If no echoes yet, show onboarding
+  // Onboarding
   if (hasShownOnboarding) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-6 text-center">
-        <h1 className="font-serif-display text-3xl lg:text-4xl text-foreground mb-4">
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-amber/5 blur-[120px] pointer-events-none" />
+        <h1 className="font-serif-sacred text-3xl lg:text-4xl text-foreground mb-3 tracking-wide sacred-reveal">
           What did you almost say,<br />but didn't?
         </h1>
-        <p className="text-muted-foreground max-w-md mb-8">
-          Press the circle below. Speak freely. No timer, no judgment. 
+        <p className="text-muted-foreground max-w-md mb-10 text-sm leading-relaxed sacred-reveal sacred-reveal-delay-1">
+          Press the circle below. Speak freely. No timer, no judgment.
           Your voice becomes an echo — preserved in your vault.
         </p>
-        <div className="flex gap-3 mb-8">
+        <div className="flex gap-3 mb-10 sacred-reveal sacred-reveal-delay-2">
           <button
             onClick={() => setMode("vault")}
-            className={`px-5 py-2 rounded-full text-sm transition-all ${
-              mode === "vault" ? "bg-amber/20 text-amber border border-amber/30" : "text-muted-foreground border border-border"
+            className={`px-6 py-2.5 rounded-full text-sm font-serif-sacred tracking-wider transition-all duration-300 ${
+              mode === "vault" ? "bg-amber/15 text-amber border border-amber/25 glow-amber" : "text-muted-foreground border border-border/50 hover:border-amber/20"
             }`}
           >
             Vault
           </button>
           <button
             onClick={() => setMode("future_self")}
-            className={`px-5 py-2 rounded-full text-sm transition-all ${
-              mode === "future_self" ? "bg-amber/20 text-amber border border-amber/30" : "text-muted-foreground border border-border"
+            className={`px-6 py-2.5 rounded-full text-sm font-serif-sacred tracking-wider transition-all duration-300 ${
+              mode === "future_self" ? "bg-amber/15 text-amber border border-amber/25 glow-amber" : "text-muted-foreground border border-border/50 hover:border-amber/20"
             }`}
           >
             Future Self
@@ -276,36 +266,37 @@ export default function Recording() {
         </div>
         <button
           onClick={startRecording}
-          className="w-20 h-20 rounded-full bg-amber/10 border-2 border-amber/30 flex items-center justify-center hover:bg-amber/20 transition-all active:scale-95"
+          className="relative w-24 h-24 rounded-full bg-amber/8 border-2 border-amber/25 flex items-center justify-center hover:bg-amber/15 transition-all duration-500 active:scale-95 glow-amber-strong sacred-reveal sacred-reveal-delay-3"
         >
-          <Mic className="h-8 w-8 text-amber" />
+          <div className="absolute inset-0 rounded-full bg-amber/5 animate-ping" style={{ animationDuration: "3s" }} />
+          <Mic className="h-10 w-10 text-amber/80" />
         </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-8">
+    <div className="max-w-lg mx-auto px-4 pt-6">
       {/* Greeting */}
-      <div className="mb-8">
-        <h1 className="font-serif-display text-2xl text-foreground">{greeting()}</h1>
-        <p className="text-muted-foreground text-sm mt-1">What echoes through you today?</p>
+      <div className="mb-8 sacred-reveal">
+        <h1 className="font-serif-sacred text-2xl text-foreground tracking-wide">{greeting()}</h1>
+        <p className="text-muted-foreground/70 text-sm mt-1.5 font-light">What echoes through you today?</p>
       </div>
 
       {/* Mode toggle */}
-      <div className="flex gap-3 mb-6">
+      <div className="flex gap-3 mb-6 sacred-reveal sacred-reveal-delay-1">
         <button
           onClick={() => setMode("vault")}
-          className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-            mode === "vault" ? "bg-amber/15 text-amber border border-amber/30" : "text-muted-foreground border border-border hover:border-amber/20"
+          className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
+            mode === "vault" ? "glass-warm text-amber glow-amber" : "text-muted-foreground border border-border/50 hover:border-amber/15"
           }`}
         >
           Vault
         </button>
         <button
           onClick={() => setMode("future_self")}
-          className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-            mode === "future_self" ? "bg-amber/15 text-amber border border-amber/30" : "text-muted-foreground border border-border hover:border-amber/20"
+          className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
+            mode === "future_self" ? "glass-warm text-amber glow-amber" : "text-muted-foreground border border-border/50 hover:border-amber/15"
           }`}
         >
           Future Self
@@ -314,9 +305,9 @@ export default function Recording() {
 
       {/* Future Self seal duration */}
       {mode === "future_self" && !isRecording && !audioBlob && (
-        <div className="mb-6 p-4 rounded-xl bg-charcoal-lighter border border-border/50">
-          <label className="text-xs text-muted-foreground uppercase tracking-wider">Seal for</label>
-          <div className="flex gap-2 mt-2 flex-wrap">
+        <div className="mb-6 p-4 rounded-xl glass-warm sacred-reveal sacred-reveal-delay-1">
+          <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-serif-sacred">Seal for</label>
+          <div className="flex gap-2 mt-3 flex-wrap">
             {[
               { days: 30, label: "1 month" },
               { days: 180, label: "6 months" },
@@ -326,8 +317,8 @@ export default function Recording() {
               <button
                 key={opt.days}
                 onClick={() => setUnlockDays(opt.days)}
-                className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
-                  unlockDays === opt.days ? "bg-amber/20 text-amber" : "text-muted-foreground hover:text-foreground"
+                className={`px-4 py-2 rounded-lg text-xs font-serif-sacred tracking-wide transition-all duration-300 ${
+                  unlockDays === opt.days ? "bg-amber/15 text-amber border border-amber/25" : "text-muted-foreground border border-border/30 hover:border-amber/15 hover:text-foreground"
                 }`}
               >
                 {opt.label}
@@ -338,15 +329,15 @@ export default function Recording() {
       )}
 
       {/* Ambience selector */}
-      <div className="mb-8">
-        <label className="text-xs text-muted-foreground uppercase tracking-wider">Ambience</label>
-        <div className="flex gap-2 mt-2">
+      <div className="mb-8 sacred-reveal sacred-reveal-delay-2">
+        <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-serif-sacred">Ambience</label>
+        <div className="flex gap-2 mt-3">
           {AMBIENCE_OPTIONS.map(opt => (
             <button
               key={opt.value}
               onClick={() => setAmbience(opt.value)}
-              className={`px-3 py-1.5 rounded-full text-xs transition-all ${
-                ambience === opt.value ? "bg-amber/20 text-amber" : "text-muted-foreground hover:text-foreground"
+              className={`px-4 py-2 rounded-full text-xs font-medium tracking-wide transition-all duration-300 ${
+                ambience === opt.value ? "bg-amber/15 text-amber border border-amber/25" : "text-muted-foreground/70 border border-border/30 hover:border-amber/15 hover:text-foreground"
               }`}
             >
               {opt.label}
@@ -356,40 +347,40 @@ export default function Recording() {
       </div>
 
       {/* Recording button / waveform */}
-      <div className="flex flex-col items-center mb-10">
+      <div className="flex flex-col items-center mb-10 sacred-reveal sacred-reveal-delay-3">
         {isRecording ? (
           <div className="flex flex-col items-center gap-6">
-            <div className="flex items-end gap-1 h-16" ref={waveformRef}></div>
+            <div className="flex items-end gap-[2px] h-12" ref={waveformRef}></div>
             <button
               onClick={stopRecording}
-              className="w-16 h-16 rounded-full bg-destructive/80 flex items-center justify-center hover:bg-destructive transition-all active:scale-95"
+              className="w-14 h-14 rounded-full bg-destructive/60 border border-destructive/30 flex items-center justify-center hover:bg-destructive/80 transition-all duration-300 active:scale-95"
             >
-              <Square className="h-6 w-6 text-destructive-foreground" />
+              <Square className="h-5 w-5 text-destructive-foreground" />
             </button>
-            <span className="text-muted-foreground text-sm tabular-nums">
+            <span className="text-muted-foreground/70 text-sm tabular-nums font-light">
               {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, "0")}
             </span>
           </div>
         ) : audioBlob ? (
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-amber/10 border-2 border-amber/30 flex items-center justify-center">
-              <Link2 className="h-6 w-6 text-amber" />
+          <div className="flex flex-col items-center gap-5">
+            <div className="relative w-16 h-16 rounded-full bg-amber/8 border border-amber/20 flex items-center justify-center glow-amber">
+              <Sparkle className="h-6 w-6 text-amber/70" />
             </div>
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground/70 text-sm font-light">
               {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, "0")} recorded
             </span>
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={discardRecording}
-                className="border-border text-muted-foreground"
+                className="border-border/50 text-muted-foreground hover:border-amber/20 hover:text-foreground transition-all duration-300"
                 disabled={isProcessing}
               >
                 Discard
               </Button>
               <Button
                 onClick={handleSave}
-                className="bg-amber/90 hover:bg-amber text-primary-foreground"
+                className="bg-amber/80 hover:bg-amber text-primary-foreground shadow-lg shadow-amber/10 transition-all duration-300"
                 disabled={isProcessing}
               >
                 {isProcessing ? "Processing..." : "Review & Save"}
@@ -400,40 +391,41 @@ export default function Recording() {
           <div className="flex flex-col items-center gap-4">
             <button
               onClick={startRecording}
-              className="w-24 h-24 rounded-full bg-amber/10 border-2 border-amber/30 flex items-center justify-center hover:bg-amber/20 transition-all active:scale-95"
+              className="relative w-28 h-28 rounded-full bg-amber/6 border-2 border-amber/20 flex items-center justify-center hover:bg-amber/12 hover:border-amber/35 transition-all duration-500 active:scale-[0.95] glow-amber-strong breathing-pulse"
             >
-              <Mic className="h-10 w-10 text-amber" />
+              <div className="absolute inset-[-8px] rounded-full border border-amber/10" />
+              <Mic className="h-10 w-10 text-amber/70" />
             </button>
-            <span className="text-muted-foreground text-sm">Press to begin</span>
+            <span className="text-muted-foreground/60 text-sm font-light tracking-wide">Press to begin</span>
           </div>
         )}
       </div>
 
       {/* Save confirmation modal */}
       {showConfirmation && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-charcoal-light border border-border rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="font-serif-display text-xl text-foreground mb-4">Review your echo</h3>
-            
+        <div className="fixed inset-0 z-50 bg-void/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-strong rounded-2xl p-7 max-w-md w-full max-h-[80vh] overflow-y-auto sacred-reveal glow-inner">
+            <h3 className="font-serif-sacred text-xl text-foreground mb-6 tracking-wide">Review your echo</h3>
+
             {/* Mood */}
-            <div className="mb-4">
-              <label className="text-xs text-muted-foreground uppercase tracking-wider">Mood</label>
+            <div className="mb-5">
+              <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-serif-sacred">Mood</label>
               <input
                 type="text"
                 value={selectedMood || ""}
                 onChange={(e) => setSelectedMood(e.target.value)}
-                className="mt-1 w-full bg-charcoal border border-border rounded-lg px-3 py-2 text-foreground text-sm focus:outline-none focus:border-amber/50"
+                className="mt-2 w-full bg-charcoal/50 border border-border/50 rounded-xl px-4 py-2.5 text-foreground text-sm focus:outline-none focus:border-amber/40 transition-colors duration-300"
                 placeholder="tender, restless, hopeful..."
               />
             </div>
 
             {/* Collection */}
-            <div className="mb-4">
-              <label className="text-xs text-muted-foreground uppercase tracking-wider">Collection</label>
+            <div className="mb-5">
+              <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-serif-sacred">Collection</label>
               <select
                 value={selectedCollectionId || ""}
                 onChange={(e) => setSelectedCollectionId(e.target.value ? Number(e.target.value) : null)}
-                className="mt-1 w-full bg-charcoal border border-border rounded-lg px-3 py-2 text-foreground text-sm focus:outline-none focus:border-amber/50"
+                className="mt-2 w-full bg-charcoal/50 border border-border/50 rounded-xl px-4 py-2.5 text-foreground text-sm focus:outline-none focus:border-amber/40 transition-colors duration-300"
               >
                 <option value="">No collection</option>
                 {collections.data?.map(c => (
@@ -444,18 +436,18 @@ export default function Recording() {
 
             {/* Title */}
             <div className="mb-6">
-              <label className="text-xs text-muted-foreground uppercase tracking-wider">Title</label>
+              <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-serif-sacred">Title</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mt-1 w-full bg-charcoal border border-border rounded-lg px-3 py-2 text-foreground text-sm focus:outline-none focus:border-amber/50"
+                className="mt-2 w-full bg-charcoal/50 border border-border/50 rounded-xl px-4 py-2.5 text-foreground text-sm focus:outline-none focus:border-amber/40 transition-colors duration-300"
                 placeholder="A short title for this moment"
               />
             </div>
 
             {mode === "future_self" && (
-              <p className="text-xs text-amber-dim mb-4 italic">
+              <p className="text-xs text-amber-dim mb-6 italic font-serif-sacred tracking-wide">
                 This letter will be sealed for {unlockDays} days and cannot be opened until {new Date(Date.now() + unlockDays * 24 * 60 * 60 * 1000).toLocaleDateString()}.
               </p>
             )}
@@ -464,14 +456,14 @@ export default function Recording() {
               <Button
                 variant="outline"
                 onClick={discardRecording}
-                className="flex-1 border-border text-muted-foreground"
+                className="flex-1 border-border/50 text-muted-foreground hover:border-amber/20 transition-all duration-300"
                 disabled={isProcessing}
               >
                 Discard
               </Button>
               <Button
                 onClick={confirmSave}
-                className="flex-1 bg-amber/90 hover:bg-amber text-primary-foreground"
+                className="flex-1 bg-amber/80 hover:bg-amber text-primary-foreground shadow-lg shadow-amber/10 transition-all duration-300"
                 disabled={isProcessing}
               >
                 {isProcessing ? "Saving..." : mode === "future_self" ? "Seal it" : "Preserve"}
@@ -483,23 +475,21 @@ export default function Recording() {
 
       {/* Recent echoes */}
       {recentEchoes.data && recentEchoes.data.length > 0 && (
-        <div className="mt-8 border-t border-border/30 pt-6">
-          <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-4">Recent echoes</h3>
+        <div className="mt-10 border-t border-border/20 pt-6">
+          <h3 className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-serif-sacred mb-4">Recent echoes</h3>
           {recentEchoes.data.map((echo) => (
-            <div key={echo.id} className="py-3 border-b border-border/20 last:border-0">
+            <div key={echo.id} className="py-4 border-b border-border/15 last:border-0">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-foreground">
-                  {echo.title || "Untitled"}
-                </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm text-foreground/90 font-light">{echo.title || "Untitled"}</span>
+                <span className="text-xs text-muted-foreground/60 tabular-nums">
                   {Math.floor(echo.durationSec / 60)}:{Math.floor(echo.durationSec % 60).toString().padStart(2, "0")}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+              <p className="text-xs text-muted-foreground/60 mt-1.5 line-clamp-1 font-light">
                 {echo.transcript || "No transcript"}
               </p>
               {echo.mood && (
-                <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full bg-amber/10 text-amber-dim">
+                <span className="inline-block mt-2 text-[10px] px-2.5 py-0.5 rounded-full bg-amber/8 text-amber-dim border border-amber/10 tracking-wider">
                   {echo.mood}
                 </span>
               )}

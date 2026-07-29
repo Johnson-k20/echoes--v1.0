@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
-import { Button } from "@/components/ui/button";
-import { Lock, Mic, Clock } from "lucide-react";
+import { Lock, Mic, Clock, Sparkle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
 interface EchoWithUnlock {
@@ -52,7 +51,7 @@ export default function Timeline() {
   if (echoes.isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-6 h-6 border-2 border-amber/30 border-t-amber rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-amber/20 border-t-amber/60 rounded-full animate-spin" />
       </div>
     );
   }
@@ -60,54 +59,66 @@ export default function Timeline() {
   if (!echoes.data || echoes.data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
-        <Clock className="h-10 w-10 text-muted-foreground/40 mb-4" />
-        <p className="font-serif-display text-xl text-muted-foreground">No echoes yet.</p>
-        <p className="text-sm text-muted-foreground/60 mt-2">Press the circle to begin.</p>
+        <Clock className="h-10 w-10 text-muted-foreground/30 mb-5" strokeWidth={1} />
+        <p className="font-serif-sacred text-xl text-muted-foreground/70 tracking-wide">No echoes yet.</p>
+        <p className="text-sm text-muted-foreground/40 mt-2 font-light">Press the circle to begin.</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-8">
-      <h1 className="font-serif-display text-2xl text-foreground mb-8">Timeline</h1>
+      <h1 className="font-serif-sacred text-2xl text-foreground mb-10 tracking-wide">Timeline</h1>
 
-      {grouped.map(([month, items]) => (
-        <div key={month} className="mb-8">
-          <h2 className="text-xs text-muted-foreground uppercase tracking-wider mb-4 font-sans">{month}</h2>
+      {grouped.map(([month, items], gi) => (
+        <div key={month} className="mb-10 sacred-reveal" style={{ animationDelay: `${gi * 0.1}s` }}>
+          <div className="flex items-center gap-3 mb-5">
+            <h2 className="text-xs text-muted-foreground/60 uppercase tracking-[0.2em] font-serif-sacred">{month}</h2>
+            <div className="flex-1 divider-sacred" />
+          </div>
           <div className="space-y-3">
-            {items.map((echo) => (
-              <div key={echo.id} className="bg-charcoal-light border border-border/30 rounded-xl p-4 transition-all hover:border-border/50">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      {echo.mode === "future_self" && !echo.isUnlocked ? (
-                        <Lock className="h-3.5 w-3.5 text-amber/60" />
-                      ) : (
-                        <Mic className="h-3.5 w-3.5 text-amber/60" />
-                      )}
-                      <h3 className="text-sm font-medium text-foreground">
-                        {echo.isUnlocked ? (echo.title || "Untitled") : "Sealed letter"}
-                      </h3>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+            {items.map((echo, ei) => (
+              <div
+                key={echo.id}
+                className="glass rounded-xl p-5 transition-all duration-500 hover:bg-charcoal-lighter/60 group"
+                style={{ animationDelay: `${(gi * items.length + ei) * 0.05}s` }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 w-8 h-8 rounded-full bg-amber/5 border border-amber/15 flex items-center justify-center shrink-0">
+                    {echo.mode === "future_self" && !echo.isUnlocked ? (
+                      <Lock className="h-3.5 w-3.5 text-amber/50" strokeWidth={1.5} />
+                    ) : (
+                      <Mic className="h-3.5 w-3.5 text-amber/50" strokeWidth={1.5} />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-medium text-foreground/90 truncate">
+                      {echo.isUnlocked ? (echo.title || "Untitled") : "Sealed letter"}
+                    </h3>
+                    <p className="text-xs text-muted-foreground/60 mt-1.5 line-clamp-2 font-light leading-relaxed">
                       {echo.isUnlocked
                         ? (echo.transcript || "No transcript available")
                         : `Sealed ${echo.sealDate ? format(new Date(echo.sealDate), "MMM d, yyyy") : "recently"} · Opens ${echo.unlockDate ? format(new Date(echo.unlockDate), "MMM d, yyyy") : "unknown date"}`}
                     </p>
-                    <div className="flex items-center gap-3 mt-2">
-                      <span className="text-[10px] text-muted-foreground/60 tabular-nums">
+                    <div className="flex items-center gap-3 mt-2.5">
+                      <span className="text-[10px] text-muted-foreground/50 tabular-nums tracking-wide">
                         {formatDuration(echo.durationSec)}
                       </span>
                       {echo.mood && echo.isUnlocked && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber/10 text-amber-dim">
+                        <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber/6 text-amber-dim border border-amber/8 tracking-wider">
                           {echo.mood}
                         </span>
                       )}
-                      <span className="text-[10px] text-muted-foreground/40">
+                      <span className="text-[10px] text-muted-foreground/40 tracking-wide">
                         {formatDistanceToNow(new Date(echo.createdAt), { addSuffix: true })}
                       </span>
                     </div>
                   </div>
+                  {echo.mode === "future_self" && !echo.isUnlocked && (
+                    <div className="shrink-0 w-6 h-6 rounded-full bg-amber/5 flex items-center justify-center">
+                      <Sparkle className="h-3 w-3 text-amber/30" />
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

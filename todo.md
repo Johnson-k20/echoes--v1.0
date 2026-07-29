@@ -43,3 +43,20 @@
 - [x] Transitions and animations (breathing waveform, fade-ins)
 - [x] Empty states for all views
 - [x] Copy voice consistency across all screens
+## Ethereal / Sacred UI Redesign
+- [x] Ambient light orbs (soft radial gradients, floating, slow-drift)
+- [x] Particle/dust-mote canvas effect (subtle floating particles)
+- [x] Luminous amber glow effects (neon-flicker, candle-like warmth)
+- [x] Gradient backgrounds (deep charcoal → midnight blue → warm amber at horizon)
+- [x] Glassmorphic cards with frosted blur and inner glow
+- [x] Serif typography with letter-spacing elevation (sacred text feel)
+- [x] Breathing animation on recording button (pulsing light halo)
+- [x] Sacred geometry dividers (thin golden lines, subtle mandala hints)
+- [x] Elevated Landing page (hero with floating orb, atmospheric depth)
+- [x] Elevated Recording ritual (candlelit room feel, ambient dust)
+- [x] Elevated Timeline (glowing echo cards, ethereal separators)
+- [x] Elevated Collections (luminous room cards with soft inner light)
+- [x] Elevated Future Self (ceremonial lock imagery, wax-seal aesthetic)
+- [x] Elevated Insights (calligraphy-style observation, floating words)
+- [x] Elevated Settings (softer card treatment, warm amber borders)
+- [x] Micro-interactions: hover glow, focus halos, gentle fade transitions
