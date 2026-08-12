@@ -16,6 +16,7 @@ import { echoes, collections, insightSnapshots, users } from "../drizzle/schema"
 import { storagePut, storageGet } from "./storage";
 import { transcribeAudio } from "./_core/voiceTranscription";
 import { invokeLLM } from "./_core/llm";
+import { commerceRouter } from "./routers/commerce";
 import { promises as fs } from "fs";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -324,6 +325,9 @@ Their recordings cover topics like: ${echoes.slice(0, 10).map(e => e.transcript?
       return { url, key, filename: `echoes-archive-${Date.now()}.zip` };
     }),
   }),
+
+  // ─── Commerce ───
+  commerce: commerceRouter,
 
   // ─── Account ───
   account: router({
