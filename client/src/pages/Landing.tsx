@@ -6,6 +6,7 @@ import { Mic, Lock, Sparkles, Star } from "lucide-react";
 import { AmbientOrbs, ParticleField } from "@/components/AmbientEffects";
 import { CursorGlow } from "@/components/CursorGlow";
 import { MagneticButton } from "@/components/MagneticButton";
+import { AnimatedGrain } from "@/components/AnimatedGrain";
 
 export default function Landing() {
   const { isAuthenticated } = useAuth();
@@ -16,7 +17,7 @@ export default function Landing() {
       <CursorGlow radius={250} />
       <AmbientOrbs />
       <ParticleField count={25} />
-      <div className="grain-overlay fixed inset-0 pointer-events-none z-[1] opacity-40" />
+      <AnimatedGrain opacity={0.02} />
 
       {/* Content above ambient */}
       <div className="relative z-10">

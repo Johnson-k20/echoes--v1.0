@@ -31,6 +31,19 @@ export default function Recording() {
   const [duration, setDuration] = useState(0);
   const [unlockDays, setUnlockDays] = useState(30);
   const [hasShownOnboarding, setHasShownOnboarding] = useState(false);
+  const [savedDuration, setSavedDuration] = useState(0);
+
+  // Local draft persistence — save recording blob to localStorage on stop
+  useEffect(() => {
+    if (audioBlob && !isRecording) {
+      // Store a flag that a draft exists (blob too large for localStorage, store metadata)
+      try {
+        localStorage.setItem("echoes-draft-mode", mode);
+        localStorage.setItem("echoes-draft-duration", String(duration));
+        localStorage.setItem("echoes-draft-ambience", ambience);
+      } catch {}
+    }
+  }, [audioBlob, isRecording, mode, duration, ambience]);
 
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
@@ -405,7 +418,7 @@ export default function Recording() {
               {/* Play locally */}
               <button
                 onClick={handlePlayLocal}
-                className="p-2.5 rounded-full border border-border/40 text-muted-foreground hover:text-amber hover:border-amber/30 transition-all duration-300"
+                className="p-2.5 rounded-full border border-border/40 text-muted-foreground hover:text-amber hover:border-amber/30 transition-all duration-300 active:success-pulse"
                 title="Preview your recording"
               >
                 <Play className="h-4 w-4" />
@@ -413,7 +426,7 @@ export default function Recording() {
               {/* Save locally */}
               <button
                 onClick={handleLocalSave}
-                className="p-2.5 rounded-full border border-border/40 text-muted-foreground hover:text-amber hover:border-amber/30 transition-all duration-300"
+                className="p-2.5 rounded-full border border-border/40 text-muted-foreground hover:text-amber hover:border-amber/30 transition-all duration-300 active:success-pulse"
                 title="Save to your device"
               >
                 <Download className="h-4 w-4" />
@@ -511,7 +524,7 @@ export default function Recording() {
               </Button>
               <Button
                 onClick={confirmSave}
-                className="flex-1 bg-amber/80 hover:bg-amber text-primary-foreground shadow-lg shadow-amber/10 transition-all duration-300"
+                className="flex-1 bg-amber/80 hover:bg-amber text-primary-foreground shadow-lg shadow-amber/10 transition-all duration-300 active:success-pulse"
                 disabled={isProcessing}
               >
                 {isProcessing ? "Saving..." : mode === "future_self" ? "Seal it" : "Preserve"}

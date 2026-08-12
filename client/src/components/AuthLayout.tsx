@@ -15,6 +15,7 @@ import {
 import { AmbientOrbs, ParticleField } from "@/components/AmbientEffects";
 import { CursorGlow } from "@/components/CursorGlow";
 import { ScrollProgress } from "@/components/ScrollProgress";
+import { AnimatedGrain } from "@/components/AnimatedGrain";
 
 const navItems = [
   { href: "/app", icon: Home, label: "Home" },
@@ -64,6 +65,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <div className="min-h-screen bg-void relative overflow-hidden">
       {/* Subtle ambient background */}
       <AmbientOrbs />
+      <AnimatedGrain opacity={0.025} />
       <div className="fixed inset-0 bg-gradient-to-b from-void via-void to-charcoal/20 pointer-events-none z-0" />
 
       {/* Content above ambient */}
