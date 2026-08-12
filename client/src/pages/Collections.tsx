@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { FolderOpen, Plus, X, Sparkle } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { ParallaxTilt } from "@/components/ParallaxTilt";
 
 export default function Collections() {
   const collections = trpc.collections.list.useQuery(undefined);
@@ -72,6 +73,7 @@ export default function Collections() {
           const echoCount = echoesByCollection.data?.length || 0;
           return (
             <ScrollReveal key={col.id} delay={i * 60}>
+            <ParallaxTilt>
             <div
               onClick={() => setSelectedCollection(selectedCollection === col.id ? null : col.id)}
               className={`relative p-5 rounded-xl border cursor-pointer transition-all duration-500 group ${
@@ -103,6 +105,7 @@ export default function Collections() {
                 <div className="absolute inset-0 rounded-xl bg-amber/3 pointer-events-none" />
               )}
             </div>
+            </ParallaxTilt>
             </ScrollReveal>
           );
         })}

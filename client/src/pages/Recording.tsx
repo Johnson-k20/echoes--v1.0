@@ -4,6 +4,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Mic, Square, Sparkle, Download, Play } from "lucide-react";
 import { toast } from "sonner";
+import { MagneticButton } from "@/components/MagneticButton";
+import { LiquidRipple } from "@/components/LiquidRipple";
 
 type Mode = "vault" | "future_self";
 type Ambience = "silence" | "rain" | "cafe" | "night";
@@ -44,6 +46,20 @@ export default function Recording() {
       } catch {}
     }
   }, [audioBlob, isRecording, mode, duration, ambience]);
+
+  // Restore draft state (mode/ambience preference) on mount if an in-progress draft exists
+  useEffect(() => {
+    try {
+      const draftMode = localStorage.getItem("echoes-draft-mode");
+      const draftAmbience = localStorage.getItem("echoes-draft-ambience");
+      if (draftMode && (draftMode === "vault" || draftMode === "future_self")) {
+        setMode(draftMode);
+      }
+      if (draftAmbience) {
+        setAmbience(draftAmbience as Ambience);
+      }
+    } catch {}
+  }, []);
 
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
@@ -221,6 +237,12 @@ export default function Recording() {
       setShowConfirmation(false);
       setAudioBlob(null);
       setDuration(0);
+      // Clear draft persistence once the echo is successfully preserved
+      try {
+        localStorage.removeItem("echoes-draft-mode");
+        localStorage.removeItem("echoes-draft-duration");
+        localStorage.removeItem("echoes-draft-ambience");
+      } catch {}
       toast.success(mode === "vault" ? "Echo preserved in the Vault." : "Letter sealed. It will arrive on time.");
     } catch (err) {
       toast.error("Failed to save echo.");
@@ -309,13 +331,13 @@ export default function Recording() {
             Future Self
           </button>
         </div>
-        <button
+        <LiquidRipple
           onClick={startRecording}
           className="relative w-24 h-24 rounded-full bg-amber/8 border-2 border-amber/25 flex items-center justify-center hover:bg-amber/15 transition-all duration-500 active:scale-95 glow-amber-strong sacred-reveal sacred-reveal-delay-3"
         >
           <div className="absolute inset-0 rounded-full bg-amber/5 animate-ping" style={{ animationDuration: "3s" }} />
           <Mic className="h-10 w-10 text-amber/80" />
-        </button>
+        </LiquidRipple>
       </div>
     );
   }
@@ -329,23 +351,23 @@ export default function Recording() {
       </div>
 
       {/* Mode toggle */}
-      <div className="flex gap-3 mb-6 sacred-reveal sacred-reveal-delay-1">
-        <button
+        <div className="flex gap-3 mb-6 sacred-reveal sacred-reveal-delay-1">
+        <LiquidRipple
           onClick={() => setMode("vault")}
-          className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
+          className={`flex-1 rounded-xl transition-all duration-300 ${
             mode === "vault" ? "glass-warm text-amber glow-amber" : "text-muted-foreground border border-border/50 hover:border-amber/15"
           }`}
         >
-          Vault
-        </button>
-        <button
+          <span className="block px-4 py-3 text-sm font-medium">Vault</span>
+        </LiquidRipple>
+        <LiquidRipple
           onClick={() => setMode("future_self")}
-          className={`flex-1 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
+          className={`flex-1 rounded-xl transition-all duration-300 ${
             mode === "future_self" ? "glass-warm text-amber glow-amber" : "text-muted-foreground border border-border/50 hover:border-amber/15"
           }`}
         >
-          Future Self
-        </button>
+          <span className="block px-4 py-3 text-sm font-medium">Future Self</span>
+        </LiquidRipple>
       </div>
 
       {/* Future Self seal duration */}
@@ -359,15 +381,15 @@ export default function Recording() {
               { days: 365, label: "1 year" },
               { days: 1825, label: "5 years" },
             ].map(opt => (
-              <button
+              <LiquidRipple
                 key={opt.days}
                 onClick={() => setUnlockDays(opt.days)}
-                className={`px-4 py-2 rounded-lg text-xs font-serif-sacred tracking-wide transition-all duration-300 ${
+                className={`rounded-lg transition-all duration-300 ${
                   unlockDays === opt.days ? "bg-amber/15 text-amber border border-amber/25" : "text-muted-foreground border border-border/30 hover:border-amber/15 hover:text-foreground"
                 }`}
               >
-                {opt.label}
-              </button>
+                <span className="block px-4 py-2 text-xs font-serif-sacred tracking-wide">{opt.label}</span>
+              </LiquidRipple>
             ))}
           </div>
         </div>
@@ -378,15 +400,15 @@ export default function Recording() {
         <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-serif-sacred">Ambience</label>
         <div className="flex gap-2 mt-3">
           {AMBIENCE_OPTIONS.map(opt => (
-            <button
+            <LiquidRipple
               key={opt.value}
               onClick={() => setAmbience(opt.value)}
-              className={`px-4 py-2 rounded-full text-xs font-medium tracking-wide transition-all duration-300 ${
+              className={`rounded-full transition-all duration-300 ${
                 ambience === opt.value ? "bg-amber/15 text-amber border border-amber/25" : "text-muted-foreground/70 border border-border/30 hover:border-amber/15 hover:text-foreground"
               }`}
             >
-              {opt.label}
-            </button>
+              <span className="block px-4 py-2 text-xs font-medium tracking-wide">{opt.label}</span>
+            </LiquidRipple>
           ))}
         </div>
       </div>
@@ -416,47 +438,53 @@ export default function Recording() {
             </span>
             <div className="flex items-center gap-3">
               {/* Play locally */}
-              <button
+              <LiquidRipple
                 onClick={handlePlayLocal}
-                className="p-2.5 rounded-full border border-border/40 text-muted-foreground hover:text-amber hover:border-amber/30 transition-all duration-300 active:success-pulse"
-                title="Preview your recording"
+                className="rounded-full border border-border/40 text-muted-foreground hover:text-amber hover:border-amber/30 transition-all duration-300 active:success-pulse"
               >
-                <Play className="h-4 w-4" />
-              </button>
+                <span className="flex p-2.5" title="Preview your recording">
+                  <Play className="h-4 w-4" />
+                </span>
+              </LiquidRipple>
               {/* Save locally */}
-              <button
+              <LiquidRipple
                 onClick={handleLocalSave}
-                className="p-2.5 rounded-full border border-border/40 text-muted-foreground hover:text-amber hover:border-amber/30 transition-all duration-300 active:success-pulse"
-                title="Save to your device"
+                className="rounded-full border border-border/40 text-muted-foreground hover:text-amber hover:border-amber/30 transition-all duration-300 active:success-pulse"
               >
-                <Download className="h-4 w-4" />
-              </button>
-              <Button
+                <span className="flex p-2.5" title="Save to your device">
+                  <Download className="h-4 w-4" />
+                </span>
+              </LiquidRipple>
+              <MagneticButton
                 variant="outline"
                 onClick={discardRecording}
                 className="border-border/50 text-muted-foreground hover:border-amber/20 hover:text-foreground transition-all duration-300 ml-auto"
                 disabled={isProcessing}
               >
                 Discard
-              </Button>
-              <Button
-                onClick={handleSave}
-                className="bg-amber/80 hover:bg-amber text-primary-foreground shadow-lg shadow-amber/10 transition-all duration-300"
-                disabled={isProcessing}
+              </MagneticButton>
+              <LiquidRipple
+                className="rounded-xl"
               >
-                {isProcessing ? "Processing..." : "Review & Save"}
-              </Button>
+                <Button
+                  onClick={handleSave}
+                  className="bg-amber/80 hover:bg-amber text-primary-foreground shadow-lg shadow-amber/10 transition-all duration-300"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? "Processing..." : "Review & Save"}
+                </Button>
+              </LiquidRipple>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4">
-            <button
+            <LiquidRipple
               onClick={startRecording}
               className="relative w-28 h-28 rounded-full bg-amber/6 border-2 border-amber/20 flex items-center justify-center hover:bg-amber/12 hover:border-amber/35 transition-all duration-500 active:scale-[0.95] glow-amber-strong breathing-pulse"
             >
               <div className="absolute inset-[-8px] rounded-full border border-amber/10" />
               <Mic className="h-10 w-10 text-amber/70" />
-            </button>
+            </LiquidRipple>
             <span className="text-muted-foreground/60 text-sm font-light tracking-wide">Press to begin</span>
           </div>
         )}
@@ -514,21 +542,23 @@ export default function Recording() {
             )}
 
             <div className="flex gap-3">
-              <Button
+              <MagneticButton
                 variant="outline"
                 onClick={discardRecording}
                 className="flex-1 border-border/50 text-muted-foreground hover:border-amber/20 transition-all duration-300"
                 disabled={isProcessing}
               >
                 Discard
-              </Button>
-              <Button
-                onClick={confirmSave}
-                className="flex-1 bg-amber/80 hover:bg-amber text-primary-foreground shadow-lg shadow-amber/10 transition-all duration-300 active:success-pulse"
-                disabled={isProcessing}
-              >
-                {isProcessing ? "Saving..." : mode === "future_self" ? "Seal it" : "Preserve"}
-              </Button>
+              </MagneticButton>
+              <LiquidRipple className="flex-1">
+                <Button
+                  onClick={confirmSave}
+                  className="w-full bg-amber/80 hover:bg-amber text-primary-foreground shadow-lg shadow-amber/10 transition-all duration-300 active:success-pulse"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? "Saving..." : mode === "future_self" ? "Seal it" : "Preserve"}
+                </Button>
+              </LiquidRipple>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+import { redirectUriIsDeepLink } from "../mobile-session";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -23,13 +24,20 @@ export function registerOAuthRoutes(app: Express) {
     // CSRF guard: the nonce in `state` must match the one-time cookie that
     // startLogin set in the browser that began this login. An attacker can
     // forge `state`, but cannot plant this cookie in the victim's browser.
-    const { nonce } = decodeOAuthState(state);
-    const expectedNonce = parseCookieHeader(req.headers.cookie ?? "")[OAUTH_STATE_COOKIE];
-    if (!nonce || nonce !== expectedNonce) {
-      res.status(403).json({ error: "invalid oauth state" });
+    const { isDeepLink, redirectUri } = redirectUriIsDeepLink(state);
+    if (!isDeepLink) {
+      const { nonce } = decodeOAuthState(state);
+      const expectedNonce = parseCookieHeader(req.headers.cookie ?? "")[OAUTH_STATE_COOKIE];
+      if (!nonce || nonce !== expectedNonce) {
+        res.status(403).json({ error: "invalid oauth state" });
+        return;
+      }
+      res.clearCookie(OAUTH_STATE_COOKIE, { path: "/", secure: true, sameSite: "none" });
+    } else if (!redirectUri) {
+      // Malformed deep-link state — refuse to redirect anywhere.
+      res.status(400).json({ error: "invalid oauth state" });
       return;
     }
-    res.clearCookie(OAUTH_STATE_COOKIE, { path: "/", secure: true, sameSite: "none" });
 
     try {
       const tokenResponse = await sdk.exchangeCodeForToken(code, state);
@@ -52,6 +60,17 @@ export function registerOAuthRoutes(app: Express) {
         name: userInfo.name || "",
         expiresInMs: ONE_YEAR_MS,
       });
+
+      // Mobile flow: if the state's redirectUri is a custom-scheme deep link
+      // (e.g. echoes://session), hand the session token straight to the app
+      // instead of setting a web cookie it could never read.
+      const { isDeepLink, redirectUri } = redirectUriIsDeepLink(state);
+      if (isDeepLink && redirectUri) {
+        const target = new URL(redirectUri);
+        target.searchParams.set("sessionToken", sessionToken);
+        res.redirect(302, target.toString());
+        return;
+      }
 
       const cookieOptions = getSessionCookieOptions(req);
       res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });

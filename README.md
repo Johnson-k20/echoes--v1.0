@@ -92,6 +92,21 @@ A personal audio journaling web app with two modes — **Vault** (private memory
 - **Navigation**: Expo Router 6
 - **Recording**: expo-av + expo-audio
 - **Backend connection**: Same API at https://echoesvault-9awqy2br.manus.space
+- **Auth**: Real Manus OAuth via in-app browser + session token deep-link handoff (see Mobile Auth Flow below)
+
+### Micro-interaction Components
+
+| Component | Location | Behavior |
+|---|---|---|
+| `ParallaxTilt` | `client/src/components/` | Subtle 1-2deg card rotation that follows cursor; wired on Timeline echo cards and Collections room cards |
+| `LiquidRipple` | `client/src/components/` | Organic press bloom that grows from the exact press point; wired on all recording controls (record buttons, mode/ambience chips, Review & Save, Seal it/Preserve) |
+| `MagneticButton` | `client/src/components/` | Buttons gently attracted toward the cursor on hover; used on destructive actions |
+| `AnimatedGrain` | `client/src/components/` | Shifting film-grain overlay; mounted in the authenticated shell (`AuthLayout`) and the landing page |
+| `CursorGlow` | `client/src/components/` | Warm radial glow that follows the cursor |
+| Scroll progress | `client/src/components/` | Thin amber line across the top of every app page |
+| Success pulse | `client/src/index.css` | Brief scale pulse on save actions (`.success-pulse`) |
+| Breathing border | `client/src/index.css` | Soft amber border animation on focused inputs |
+| Scroll reveal | `client/src/hooks/` | Fade-in-on-scroll for timeline entries and cards |
 
 ---
 
@@ -150,13 +165,25 @@ Auto-publish is enabled — every checkpoint is automatically deployed to produc
 
 ---
 
+## Mobile Auth Flow
+
+The mobile app uses a real session — no placeholders:
+
+1. Tapping **Sign in via Manus** opens the Manus OAuth page in an in-app browser with `redirectUri` set to the app's own deep link (`echoes://session`) and an encoded `state`.
+2. After sign-in, the OAuth portal forwards the code to the backend callback, which verifies the user, mints a session token (HS256 JWT — the same token the web client receives), and redirects to `echoes://session?sessionToken=...`.
+3. The root layout's deep-link listener (`app/_layout.tsx`) captures the token, verifies it against `POST /api/mobile/session/verify`, stores it in AsyncStorage, and closes the browser.
+4. Every API request sends `Authorization: Bearer <token>`; sign-out clears the session.
+
+Backend endpoints: `GET /api/mobile/me`, `POST /api/mobile/session/verify`, plus the deep-link branch in the standard OAuth callback (`server/mobile-session.ts`).
+
 ## Mobile Testing
 
 To test on Android:
 
-1. Install Expo Go from Play Store
-2. In the `echoes-mobile/` directory: `npx expo start`
-3. Scan QR code with Expo Go
+1. Install Expo Go from the Play Store.
+2. In the `echoes-mobile/` directory: `npx expo start` and scan the QR code with Expo Go.
+3. Verify with TypeScript: `cd echoes-mobile && npx tsc --noEmit` (0 errors).
+4. The app bundled successfully against the latest Expo SDK and routes are defined for Record, Timeline, Future, and Insights tabs.
 
 For production build:
 ```bash

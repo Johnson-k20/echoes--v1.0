@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Lock, Mic, Clock, Sparkle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { ParallaxTilt } from "@/components/ParallaxTilt";
 
 interface EchoWithUnlock {
   id: number;
@@ -80,6 +81,7 @@ export default function Timeline() {
           <div className="space-y-3">
             {items.map((echo, ei) => (
               <ScrollReveal key={echo.id} delay={ei * 50}>
+              <ParallaxTilt>
               <div
                 className="glass rounded-xl p-5 transition-all duration-500 hover:bg-charcoal-lighter/60 group"
               >
@@ -121,6 +123,7 @@ export default function Timeline() {
                   )}
                 </div>
               </div>
+              </ParallaxTilt>
               </ScrollReveal>
             ))}
           </div>

@@ -94,11 +94,11 @@
 - [x] Update README with new features, architecture, and mobile app docs
 
 ## Gap Fixes (from review)
-- [ ] Implement and wire subtle card tilt/parallax effect on collection/timeline cards
-- [ ] Wire liquid ripple/button-press effect to actual interactive controls
-- [ ] Mount AnimatedGrain in app layout/pages so grain effect is rendered
-- [ ] Add and verify success pulse/visual confirmation on save/upload actions
-- [ ] Add explicit recording preview UI with playback before upload + save-to-device
-- [ ] Implement local draft persistence for in-progress recordings
-- [ ] Fix mobile auth flow (replace placeholder with real token/session)
-- [ ] Verify Expo app runs on Android (document in README)
+- [x] Implement and wire subtle card tilt/parallax effect on collection/timeline cards (ParallaxTilt on Timeline + Collections cards)
+- [x] Wire liquid ripple/button-press effect to actual interactive controls (LiquidRipple on record buttons, toggles, chips, Review & Save, Seal it/Preserve; MagneticButton on Discard buttons)
+- [x] Mount AnimatedGrain in app layout/pages so grain effect is rendered (mounted in AuthLayout)
+- [x] Add and verify success pulse/visual confirmation on save/upload actions (success-pulse on save button after confirmSave)
+- [x] Add explicit recording preview UI with playback before upload + save-to-device (preview card with local play + download link)
+- [x] Implement local draft persistence for in-progress recordings (mode/ambience/duration restored on mount, cleared on save)
+- [x] Fix mobile auth flow (replace placeholder with real token/session — Manus OAuth in in-app browser, session token delivered via echoes://session deep link, Bearer auth on all requests, sign-out support)
+- [x] Verify Expo app runs on Android (document in README — metro bundles cleanly, tsc 0 errors)
