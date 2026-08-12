@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FolderOpen, Plus, X, Sparkle } from "lucide-react";
 import { toast } from "sonner";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 export default function Collections() {
   const collections = trpc.collections.list.useQuery(undefined);
@@ -70,10 +71,10 @@ export default function Collections() {
         {collections.data?.map((col, i) => {
           const echoCount = echoesByCollection.data?.length || 0;
           return (
+            <ScrollReveal key={col.id} delay={i * 60}>
             <div
-              key={col.id}
               onClick={() => setSelectedCollection(selectedCollection === col.id ? null : col.id)}
-              className={`relative p-5 rounded-xl border cursor-pointer transition-all duration-500 group sacred-reveal ${
+              className={`relative p-5 rounded-xl border cursor-pointer transition-all duration-500 group ${
                 selectedCollection === col.id
                   ? "glass-warm glow-amber border-amber/25"
                   : "glass hover:border-amber/15 hover:bg-charcoal-lighter/40"
@@ -102,6 +103,7 @@ export default function Collections() {
                 <div className="absolute inset-0 rounded-xl bg-amber/3 pointer-events-none" />
               )}
             </div>
+            </ScrollReveal>
           );
         })}
       </div>

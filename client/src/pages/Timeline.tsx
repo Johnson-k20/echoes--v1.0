@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Lock, Mic, Clock, Sparkle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 interface EchoWithUnlock {
   id: number;
@@ -78,10 +79,9 @@ export default function Timeline() {
           </div>
           <div className="space-y-3">
             {items.map((echo, ei) => (
+              <ScrollReveal key={echo.id} delay={ei * 50}>
               <div
-                key={echo.id}
                 className="glass rounded-xl p-5 transition-all duration-500 hover:bg-charcoal-lighter/60 group"
-                style={{ animationDelay: `${(gi * items.length + ei) * 0.05}s` }}
               >
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 w-8 h-8 rounded-full bg-amber/5 border border-amber/15 flex items-center justify-center shrink-0">
@@ -121,6 +121,7 @@ export default function Timeline() {
                   )}
                 </div>
               </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Sparkle } from "lucide-react";
+import { Mic, Square, Sparkle, Download, Play } from "lucide-react";
 import { toast } from "sonner";
 
 type Mode = "vault" | "future_self";
@@ -216,6 +216,38 @@ export default function Recording() {
     }
   }, [audioBlob, mode, ambience, duration, unlockDays, selectedMood, selectedCollectionId, title, createEchoMutation, updateEchoMutation]);
 
+  const audioUrlRef = useRef<string | null>(null);
+
+  // Create audio URL for local playback
+  useEffect(() => {
+    if (audioBlob) {
+      audioUrlRef.current = URL.createObjectURL(audioBlob);
+    }
+    return () => {
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+    };
+  }, [audioBlob]);
+
+  const handleLocalSave = useCallback(() => {
+    if (!audioBlob) return;
+    const url = audioUrlRef.current || URL.createObjectURL(audioBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `echo-${new Date().toISOString().slice(0, 10)}-${mode}.webm`;
+    a.click();
+    toast.success("Recording saved to your device.");
+  }, [audioBlob, mode]);
+
+  const handlePlayLocal = useCallback(() => {
+    if (!audioUrlRef.current) return;
+    const audio = new Audio(audioUrlRef.current);
+    audio.play();
+    toast.success("Playing your recording...");
+  }, []);
+
   const discardRecording = useCallback(() => {
     setAudioBlob(null);
     setShowConfirmation(false);
@@ -369,11 +401,27 @@ export default function Recording() {
             <span className="text-muted-foreground/70 text-sm font-light">
               {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, "0")} recorded
             </span>
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
+              {/* Play locally */}
+              <button
+                onClick={handlePlayLocal}
+                className="p-2.5 rounded-full border border-border/40 text-muted-foreground hover:text-amber hover:border-amber/30 transition-all duration-300"
+                title="Preview your recording"
+              >
+                <Play className="h-4 w-4" />
+              </button>
+              {/* Save locally */}
+              <button
+                onClick={handleLocalSave}
+                className="p-2.5 rounded-full border border-border/40 text-muted-foreground hover:text-amber hover:border-amber/30 transition-all duration-300"
+                title="Save to your device"
+              >
+                <Download className="h-4 w-4" />
+              </button>
               <Button
                 variant="outline"
                 onClick={discardRecording}
-                className="border-border/50 text-muted-foreground hover:border-amber/20 hover:text-foreground transition-all duration-300"
+                className="border-border/50 text-muted-foreground hover:border-amber/20 hover:text-foreground transition-all duration-300 ml-auto"
                 disabled={isProcessing}
               >
                 Discard

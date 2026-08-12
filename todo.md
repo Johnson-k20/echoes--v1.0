@@ -60,3 +60,35 @@
 - [x] Elevated Insights (calligraphy-style observation, floating words)
 - [x] Elevated Settings (softer card treatment, warm amber borders)
 - [x] Micro-interactions: hover glow, focus halos, gentle fade transitions
+
+## UI/UX Micro-Interaction Research & Implementation
+- [ ] Research minimal modern UI/UX micro-changes (subtle, ingenious, not gimmicky)
+- [ ] Implement magnetic/elastic hover effects on interactive elements
+- [ ] Add subtle parallax tilt on cards (1-2deg max)
+- [ ] Add cursor-follow glow effect on hero/landing page
+- [ ] Implement smooth scroll-triggered fade-in for timeline entries
+- [ ] Add micro-ripple on button press (not Material ripple — organic liquid ripple)
+- [ ] Implement "breathing" border animation on focused input fields
+- [ ] Add subtle grain texture animation (shifting film grain)
+- [ ] Implement haptic-style visual feedback (brief scale pulse on save/success)
+- [ ] Add scroll-progress indicator (thin amber line at top)
+
+## Local Recording Save
+- [ ] Add "Save to device" option after recording (download as .webm/.m4a)
+- [ ] Support local playback before upload
+- [ ] Add localStorage caching of drafts (in-progress recordings)
+
+## Android Mobile App (Expo)
+- [ ] Create Expo mobile app project
+- [ ] Implement audio recording with expo-av
+- [ ] Add Vault / Future Self mode toggle
+- [ ] Add ambience selector (visual only — overlay audio mixed in client)
+- [ ] Implement authentication via webview or token-based auth
+- [ ] Add Timeline view with echo cards
+- [ ] Add Future Self locked entry view
+- [ ] Add settings/export options
+- [ ] Ensure app connects to production backend API
+- [ ] Test on Android device/emulator
+
+## README Updates
+- [ ] Update README with new features, architecture, and mobile app docs

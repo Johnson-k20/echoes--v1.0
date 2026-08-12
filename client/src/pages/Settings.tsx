@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Shield, Download, Trash2, Lock, Key, FileArchive } from "lucide-react";
 import { toast } from "sonner";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 export default function Settings() {
   const { user, logout } = useAuth();

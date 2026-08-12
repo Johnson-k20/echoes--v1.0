@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Lock, LockOpen, Clock, Sparkle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 export default function FutureSelf() {
   const sealedLetters = trpc.echoes.byMode.useQuery({ mode: "future_self" });
@@ -50,7 +51,8 @@ export default function FutureSelf() {
           </div>
           <div className="space-y-3">
             {unlocked.map(echo => (
-              <div key={echo.id} className="sacred-reveal">
+              <ScrollReveal key={echo.id}>
+              <div>
                 {revealedId === echo.id && revealedEcho.data ? (
                   <div className="glass-warm border border-amber/20 rounded-xl p-6 fade-in glow-inner">
                     {/* Ceremonial header */}
@@ -114,6 +116,7 @@ export default function FutureSelf() {
                   </div>
                 )}
               </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
@@ -133,7 +136,8 @@ export default function FutureSelf() {
                 : 0;
 
               return (
-                <div key={echo.id} className="glass border border-border/20 rounded-xl p-5 opacity-60 hover:opacity-80 transition-all duration-500 relative">
+                <ScrollReveal key={echo.id}>
+                <div className="glass border border-border/20 rounded-xl p-5 opacity-60 hover:opacity-80 transition-all duration-500 relative">
                   {/* Wax seal */}
                   <div className="absolute -top-2 -right-2 w-10 h-10 wax-seal rounded-full flex items-center justify-center z-10 shadow-lg">
                     <Lock className="h-3.5 w-3.5 text-amber-100/60" strokeWidth={2} />
@@ -163,6 +167,7 @@ export default function FutureSelf() {
                     />
                   </div>
                 </div>
+                </ScrollReveal>
               );
             })}
           </div>

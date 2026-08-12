@@ -13,6 +13,8 @@ import {
   Home,
 } from "lucide-react";
 import { AmbientOrbs, ParticleField } from "@/components/AmbientEffects";
+import { CursorGlow } from "@/components/CursorGlow";
+import { ScrollProgress } from "@/components/ScrollProgress";
 
 const navItems = [
   { href: "/app", icon: Home, label: "Home" },
@@ -66,6 +68,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Content above ambient */}
       <div className="relative z-10">
+        <CursorGlow radius={200} />
+        <ScrollProgress />
         {/* Mobile top nav */}
         <header className="sticky top-0 z-40 border-b border-border/15 bg-void/85 backdrop-blur-xl">
           <div className="flex items-center justify-between px-4 h-14">

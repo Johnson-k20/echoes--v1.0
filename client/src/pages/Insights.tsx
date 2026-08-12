@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Sparkles, Calendar } from "lucide-react";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 export default function Insights() {
   const currentMonth = useMemo(() => {

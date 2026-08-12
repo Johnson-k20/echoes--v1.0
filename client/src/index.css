@@ -314,6 +314,46 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* ─── Breathing Border on Focus ─── */
+  .input-breathe {
+    position: relative;
+    border: 1px solid oklch(0.22 0.01 260 / 0.5);
+    transition: border-color 0.3s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .input-breathe:focus-within {
+    border-color: oklch(0.78 0.14 80 / 0.4);
+    box-shadow:
+      0 0 0 1px oklch(0.78 0.14 80 / 0.15),
+      0 0 12px oklch(0.78 0.14 80 / 0.06),
+      0 0 24px oklch(0.78 0.14 80 / 0.03);
+  }
+  .input-breathe:focus-within::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    width: 60%;
+    height: 1px;
+    transform: translateX(-50%);
+    background: oklch(0.78 0.14 80 / 0.3);
+    animation: borderBreathe 2s ease-in-out infinite;
+  }
+  @keyframes borderBreathe {
+    0%, 100% { opacity: 0.5; width: 60%; }
+    50% { opacity: 1; width: 80%; }
+  }
+
+  /* ─── Success Pulse (organic scale) ─── */
+  .success-pulse {
+    animation: successPulse 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  @keyframes successPulse {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.02); }
+    60% { transform: scale(0.99); }
+    100% { transform: scale(1); }
+  }
+
   /* ─── Film Grain ─── */
   .grain-overlay {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");

@@ -4,6 +4,8 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Mic, Lock, Sparkles, Star } from "lucide-react";
 import { AmbientOrbs, ParticleField } from "@/components/AmbientEffects";
+import { CursorGlow } from "@/components/CursorGlow";
+import { MagneticButton } from "@/components/MagneticButton";
 
 export default function Landing() {
   const { isAuthenticated } = useAuth();
@@ -11,6 +13,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-void text-foreground relative overflow-hidden">
       {/* Atmospheric background */}
+      <CursorGlow radius={250} />
       <AmbientOrbs />
       <ParticleField count={25} />
       <div className="grain-overlay fixed inset-0 pointer-events-none z-[1] opacity-40" />
@@ -29,12 +32,12 @@ export default function Landing() {
               </Button>
             </Link>
           ) : (
-            <Button
+            <MagneticButton
               onClick={() => startLogin()}
               className="bg-amber/80 hover:bg-amber text-primary-foreground shadow-lg shadow-amber/10 transition-all duration-300"
             >
               Enter
-            </Button>
+            </MagneticButton>
           )}
         </header>
 
@@ -66,13 +69,13 @@ export default function Landing() {
                     </Button>
                   </Link>
                 ) : (
-                  <Button
+                  <MagneticButton
                     onClick={() => startLogin()}
                     size="lg"
                     className="bg-amber/80 hover:bg-amber text-primary-foreground text-lg px-10 py-7 shadow-lg shadow-amber/15 hover:shadow-amber/25 transition-all duration-500"
                   >
                     Begin recording
-                  </Button>
+                  </MagneticButton>
                 )}
               </div>
             </div>
