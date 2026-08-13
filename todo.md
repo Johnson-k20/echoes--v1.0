@@ -126,12 +126,12 @@
 - [x] Verify artifact (APK v16, 35.3 MB, valid zip, contains v19 FS API + hardened startup) and deliver to user
 
 ## APK v16 still crashes on launch (user report)
-- [ ] Pull and analyze the EAS build log for build 041e1924 (native errors, JS bundle errors)
-- [ ] Inspect APK AndroidManifest for suspicious activities/services (e.g., expo-splash-screen StayAwakeActivity)
-- [ ] Research Expo 54 / Android 15 known launch crash causes (new Arch, reanimated, splash, edgeToEdge)
+- [x] Pull and analyze the EAS build log for build 041e1924 (native errors, JS bundle errors)
+- [x] Inspect APK AndroidManifest for suspicious activities/services (e.g., expo-splash-screen StayAwakeActivity)
+- [x] Research Expo 54 / Android 15 known launch crash causes (new Arch, reanimated, splash, edgeToEdge)
 - [x] Apply root-cause fix: added FOREGROUND_SERVICE_MICROPHONE + POST_NOTIFICATIONS + FOREGROUND_SERVICE permissions (Android 14/15 SecurityException — expo-audio declares AudioRecordingService with foregroundServiceType=microphone, verified missing in v16 manifest; also restored INTERNET/ACCESS_NETWORK_STATE lost in config rewrite)
 - [x] Rebuild APK (v17, build 430d5b5c-fac1-4e85-a9b6-1a8184f1b440) and verify artifact (manifest now contains FOREGROUND_SERVICE_MICROPHONE; bundle contains hardened startup code)
-- [ ] Deliver new APK with instructions
+- [x] Deliver new APK with instructions (v17; superseded by v21)
 
 ## v17 launches but error boundary fires ("chamber dimmed for a moment because of something unexpected")
 - [x] Reproduce the JS startup error in a production metro bundle / JS-level simulation (RootErrorBoundary detail now visible in prod)
@@ -139,4 +139,12 @@
 - [x] Fix: Font.loadAsync in _layout before render (fontsReady gate), added metro.config.js for NativeWind, error detail shown in prod boundary
 - [x] Rebuilt APK (v19, build 3c3b4001) applying the suspected root-cause fix: fontFamily switched to Android system serif/sans (custom TTF files were silently dropped from standalone builds — verified no fonts in v18 APK); removed Font.loadAsync + metro.config.js; deps fixed (expo-asset peer, vector-icons@15, build-properties@1.0.10); awaiting device confirmation
 - [x] Verify v19 artifact (build 3c3b4001, APK 35.3 MB, bundle contains sans-serif, no custom-font references)
-- [ ] Deliver updated APK
+- [x] Deliver updated APK (v19; superseded by v21)
+
+## v19 still reaches the startup error boundary (user-confirmed)
+
+- [x] Remove module-level native file-system construction from local-recordings.ts (strongest remaining import-time suspect)
+- [x] Make RootErrorBoundary show a high-contrast error name/message/stack diagnostic
+- [x] Create a minimal Android-15-safe startup configuration: edge-to-edge disabled for diagnosis; New Architecture restored because the SDK 54/Reanimated stack fails Gradle compilation without it
+- [x] Rebuild an isolated diagnostic APK (v21, build 6b2ed63f) and verify its published artifact (35,353,412-byte APK endpoint reachable; build completed successfully)
+- [ ] Confirm the diagnostic APK opens on the Realme C67 before restoring full features
