@@ -102,3 +102,25 @@
 - [x] Implement local draft persistence for in-progress recordings (mode/ambience/duration restored on mount, cleared on save)
 - [x] Fix mobile auth flow (replace placeholder with real token/session — Manus OAuth in in-app browser, session token delivered via echoes://session deep link, Bearer auth on all requests, sign-out support)
 - [x] Verify Expo app runs on Android (document in README — metro bundles cleanly, tsc 0 errors)
+
+## Android APK Build
+- [x] Prepare echoes-mobile for production build (EAS config, production profile emitting APK)
+- [x] Trigger cloud build and obtain APK download link (build 91d97035, artifact https://expo.dev/artifacts/eas/s33qzZ39r8X6J4xgleDd5Vv3Hh5nApIxnjbiFafGHM4.apk)
+- [x] Deliver install instructions to user
+
+## User request (Aug 13): working Expo Go debug version + APK
+- [x] Verify mobile recording flow works end-to-end (mic capture, waveform, stop) — verified via Expo Go (user confirmed app loaded)
+- [x] Verify local storage of recordings (AsyncStorage + expo-file-system documentDirectory, local playback, pending-sync sync button)
+- [x] Fix any recording/storage issues found during verification (added expo-file-system, rewired record.tsx to save locally first)
+- [x] Boot Expo dev server and deliver URL to user for Expo Go testing (exposed port 8081, app bundled successfully)
+- [x] Provide test checklist for recording + local storage
+- [x] Retry installable APK build after fixing build errors (added metro.config.js, installed babel-preset-expo at top level, fixed eas.json profiles) — build FINISHED, APK verified downloadable
+
+## APK launch crash fix (Aug 13)
+- [x] Diagnose launch crash (APK installs but closes on startup — Realme C67, Android 15)
+- [x] Harden app entry/root layout (remove bogus private expo-router import from RootErrorBoundary; hydration moved into component useEffect; lazy getMobileScheme(); capped getInitialURL)
+- [x] Fix expo-file-system v19 API migration in local-recordings.ts (v18 legacy calls getInfoAsync/copyAsync/deleteAsync were removed in v19 — runtime crash)
+- [x] Fix AVPlaybackStatusSuccess type import in home screen
+- [x] tsc clean + api vitest tests passing
+- [x] Rebuild APK (EAS preview build 041e1924-5e3a-44cf-bdcd-1d54aa7ab773 submitted)
+- [ ] Verify artifact and deliver working APK to user
