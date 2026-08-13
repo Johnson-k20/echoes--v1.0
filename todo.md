@@ -132,3 +132,11 @@
 - [x] Apply root-cause fix: added FOREGROUND_SERVICE_MICROPHONE + POST_NOTIFICATIONS + FOREGROUND_SERVICE permissions (Android 14/15 SecurityException — expo-audio declares AudioRecordingService with foregroundServiceType=microphone, verified missing in v16 manifest; also restored INTERNET/ACCESS_NETWORK_STATE lost in config rewrite)
 - [x] Rebuild APK (v17, build 430d5b5c-fac1-4e85-a9b6-1a8184f1b440) and verify artifact (manifest now contains FOREGROUND_SERVICE_MICROPHONE; bundle contains hardened startup code)
 - [ ] Deliver new APK with instructions
+
+## v17 launches but error boundary fires ("chamber dimmed for a moment because of something unexpected")
+- [x] Reproduce the JS startup error in a production metro bundle / JS-level simulation (RootErrorBoundary detail now visible in prod)
+- [x] Identify failing module at app init: custom fonts CormorantGaramond/Inter referenced via font-serif/font-sans but never registered — RN 0.81 throws at first render
+- [x] Fix: Font.loadAsync in _layout before render (fontsReady gate), added metro.config.js for NativeWind, error detail shown in prod boundary
+- [x] Rebuilt APK (v19, build 3c3b4001) applying the suspected root-cause fix: fontFamily switched to Android system serif/sans (custom TTF files were silently dropped from standalone builds — verified no fonts in v18 APK); removed Font.loadAsync + metro.config.js; deps fixed (expo-asset peer, vector-icons@15, build-properties@1.0.10); awaiting device confirmation
+- [x] Verify v19 artifact (build 3c3b4001, APK 35.3 MB, bundle contains sans-serif, no custom-font references)
+- [ ] Deliver updated APK
