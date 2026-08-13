@@ -123,4 +123,12 @@
 - [x] Fix AVPlaybackStatusSuccess type import in home screen
 - [x] tsc clean + api vitest tests passing
 - [x] Rebuild APK (EAS preview build 041e1924-5e3a-44cf-bdcd-1d54aa7ab773 submitted)
-- [ ] Verify artifact and deliver working APK to user
+- [x] Verify artifact (APK v16, 35.3 MB, valid zip, contains v19 FS API + hardened startup) and deliver to user
+
+## APK v16 still crashes on launch (user report)
+- [ ] Pull and analyze the EAS build log for build 041e1924 (native errors, JS bundle errors)
+- [ ] Inspect APK AndroidManifest for suspicious activities/services (e.g., expo-splash-screen StayAwakeActivity)
+- [ ] Research Expo 54 / Android 15 known launch crash causes (new Arch, reanimated, splash, edgeToEdge)
+- [x] Apply root-cause fix: added FOREGROUND_SERVICE_MICROPHONE + POST_NOTIFICATIONS + FOREGROUND_SERVICE permissions (Android 14/15 SecurityException — expo-audio declares AudioRecordingService with foregroundServiceType=microphone, verified missing in v16 manifest; also restored INTERNET/ACCESS_NETWORK_STATE lost in config rewrite)
+- [x] Rebuild APK (v17, build 430d5b5c-fac1-4e85-a9b6-1a8184f1b440) and verify artifact (manifest now contains FOREGROUND_SERVICE_MICROPHONE; bundle contains hardened startup code)
+- [ ] Deliver new APK with instructions
