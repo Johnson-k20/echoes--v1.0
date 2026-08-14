@@ -148,3 +148,82 @@
 - [x] Create a minimal Android-15-safe startup configuration: edge-to-edge disabled for diagnosis; New Architecture restored because the SDK 54/Reanimated stack fails Gradle compilation without it
 - [x] Rebuild an isolated diagnostic APK (v21, build 6b2ed63f) and verify its published artifact (35,353,412-byte APK endpoint reachable; build completed successfully)
 - [ ] Confirm the diagnostic APK opens on the Realme C67 before restoring full features
+
+## User-requested Expo Go fallback and standalone comparison
+
+- [x] Start and expose an Expo Go-compatible development server for Echoes (Metro on public proxy port 8082)
+- [x] Give the user a QR/deep link and concise Expo Go connection instructions
+- [ ] Capture the startup exception reliably in the Expo Go development runtime
+- [ ] Compare the Expo Go and standalone startup paths to identify the remaining incompatibility
+- [ ] Apply and validate a standalone-specific fix without disrupting the Expo Go workflow
+
+## NativeWind configuration parity
+
+- [x] Identify missing required `withNativeWind` Metro wrapper as a credible Expo Go/standalone configuration discrepancy
+- [x] Restart the Expo Go server with the NativeWind Metro wrapper and verify its Android manifest is reachable through the public endpoint
+- [ ] Build a standalone APK with the NativeWind configuration restored (system fonts retained)
+
+## Expo Go runtime errors supplied by user
+
+- [x] Extract the exact runtime error text and stack frames from pasted_file_07o1Aw_errors.docx: "The result of getSnapshot should be cached to avoid an infinite loop" followed by "Maximum update depth exceeded"
+- [x] Map each reported error to the relevant mobile source module: `app/(tabs)/index.tsx` local-recordings `useSyncExternalStore` calls `() => localCache ?? []`, creating a fresh array every render; render-time external-store loop (not native startup)
+- [ ] Apply the targeted runtime fix and reload the Expo Go session
+- [ ] Confirm Expo Go opens successfully before retrying the standalone APK
+
+## Persistent Expo Go launch loop (Aug 14)
+
+- [ ] Trace every startup-time external store, effect, and navigation update that can trigger the confirmed maximum-update-depth exception
+- [ ] Add a visible development bundle fingerprint and verify the Realme C67 is loading the current Metro bundle rather than a cached revision
+- [ ] Apply the complete startup-loop fix and verify the Vault screen opens in Expo Go before producing another APK
+
+## Expo Go visible-render regression (Aug 14)
+
+- [ ] Diagnose why the updated Android bundle passes startup yet fails to visibly render the Echoes interface
+- [ ] Restore a visible Vault screen with Android-safe color and layout fallbacks independent of NativeWind styles
+- [ ] Confirm the Realme C67 can see and use the Vault screen before APK generation resumes
+
+## Android explicit-style fallback (Aug 14)
+
+- [ ] Replace the critical NativeWind-only utility styling across the Vault, recording, and tab navigation surfaces with explicit React Native styles
+- [ ] Preserve the charcoal-and-amber Echoes visual hierarchy when NativeWind utility transformation is unavailable
+- [ ] Confirm the repaired interface shows structured cards, spacing, typography, and primary controls on the Realme C67
+
+## Route body bundle-delivery diagnostic (Aug 14)
+
+- [ ] Add a native-only, high-contrast revision panel inside the Vault route to prove the phone is executing the latest route module
+- [ ] Determine whether Expo Go is serving a stale route bundle or suppressing screen-level React Native layout styles
+- [ ] Restore the complete route body only after the diagnostic revision panel is visible on the Realme C67
+
+## Clean native-only mobile rebuild (Aug 14)
+
+- [x] Rebuild the mobile app shell from a minimal Expo Router and React Native foundation while retaining Echoes navigation, charcoal-and-amber visual language, and feature structure
+- [x] Remove all startup external-store subscriptions, render-time cache reads, automatic redirects, and unstable effect dependencies from the first-launch path
+- [x] Reintroduce state in bounded layers only: local UI state, guarded asynchronous hydration, and explicit user-driven recording actions
+- [ ] Verify the rebuilt Vault body and Record screen on a fresh Expo Go host before producing a new APK
+- [x] Add guarded asynchronous hydration of local recording metadata to the rebuilt Vault without external-store subscriptions
+- [x] Cover the rebuilt Vault’s local-recording hydration path with a cache-safety regression test
+- [x] Extract and integration-test the actual Vault local-recording hydration path, including single-run and cancellation behavior
+
+## Expo Go project-delivery blocker (Aug 14)
+
+- [ ] Inspect Metro logs and the Expo manifest response to determine whether the Realme C67 ever requests the distinct rebuilt project host
+- [ ] Establish a delivery path that cannot reopen the former cached project or an older Expo Go recently-opened entry
+- [ ] Confirm the device renders the `REBUILD 02 · GUARDED LOCAL VAULT` revision before any additional UI or APK work
+
+## Legacy Expo session interception (Aug 14)
+
+- [ ] Replace QR or recent-project launching with a direct, tappable `exp://` project handoff to the independent delivery probe
+- [ ] Confirm the Realme C67 shows the `PROBE 084` amber screen rather than the legacy Vault screen shown in the supplied screenshot
+- [ ] Only resume full Echoes validation after the independent probe confirms the new project path is being opened
+
+## Direct-probe post-handoff behavior (Aug 14)
+
+- [ ] Inspect the independent probe’s Metro session for the Realme request and JavaScript bundle response after the tappable link is used
+- [ ] Confirm whether `PROBE 084` itself renders its native amber card or whether the handoff returns to a legacy app surface
+- [ ] Provide a screenshot-based pass criterion before routing the verified handoff to the rebuilt Echoes project
+
+## APK-first validation fallback (Aug 14)
+
+- [ ] Produce a new preview APK containing the validated native-only embedded Android bundle, independent of the Expo Go proxy path
+- [ ] Verify the installed APK shows the `REBUILD 02 · GUARDED LOCAL VAULT` interface and opens the recording screen on the Realme C67
+- [ ] Retire the proxy-based Expo Go test path once the standalone bundle is confirmed on-device
