@@ -6,9 +6,15 @@ import { Mic, Square, Sparkle, Download, Play } from "lucide-react";
 import { toast } from "sonner";
 import { MagneticButton } from "@/components/MagneticButton";
 import { LiquidRipple } from "@/components/LiquidRipple";
+import { getRitualGreeting, getRitualPrompt } from "@/lib/ritual";
 
 type Mode = "vault" | "future_self";
 type Ambience = "silence" | "rain" | "cafe" | "night";
+
+type PendingUpload = {
+  key: string;
+  url: string;
+};
 
 const AMBIENCE_OPTIONS: { value: Ambience; label: string }[] = [
   { value: "silence", label: "Silence" },
@@ -34,6 +40,7 @@ export default function Recording() {
   const [unlockDays, setUnlockDays] = useState(30);
   const [hasShownOnboarding, setHasShownOnboarding] = useState(false);
   const [savedDuration, setSavedDuration] = useState(0);
+  const [pendingUpload, setPendingUpload] = useState<PendingUpload | null>(null);
 
   // Local draft persistence — save recording blob to localStorage on stop
   useEffect(() => {
@@ -104,6 +111,7 @@ export default function Recording() {
 
       recorder.onstop = () => {
         const blob = new Blob(audioChunks.current, { type: "audio/webm" });
+        setPendingUpload(null);
         setAudioBlob(blob);
         stream.getTracks().forEach(t => t.stop());
         if (audioContextRef.current) audioContextRef.current.close();
@@ -156,19 +164,26 @@ export default function Recording() {
     animFrameRef.current = requestAnimationFrame(animateWaveform);
   }, []);
 
+  const uploadAudioForReview = useCallback(async (): Promise<PendingUpload> => {
+    if (!audioBlob) throw new Error("No recording to upload");
+    const formData = new FormData();
+    formData.append("file", audioBlob, `echo-${Date.now()}.webm`);
+    const uploadResp = await fetch("/api/upload", { method: "POST", body: formData });
+    if (!uploadResp.ok) throw new Error("Upload failed");
+    const uploadData = await uploadResp.json();
+    if (!uploadData.url || !uploadData.key) throw new Error("Upload failed");
+    return { key: uploadData.key, url: uploadData.url };
+  }, [audioBlob]);
+
   const handleSave = useCallback(async () => {
     if (!audioBlob) return;
     setIsProcessing(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", audioBlob, `echo-${Date.now()}.webm`);
-      const uploadResp = await fetch("/api/upload", { method: "POST", body: formData });
-      const uploadData = await uploadResp.json();
+      const upload = pendingUpload ?? await uploadAudioForReview();
+      setPendingUpload(upload);
 
-      if (!uploadData.url) throw new Error("Upload failed");
-
-      const transcribeResult = await transcribeMutation.mutateAsync({ audioUrl: uploadData.url });
+      const transcribeResult = await transcribeMutation.mutateAsync({ audioUrl: upload.url });
 
       let mood = null;
       let collection: number | null = null;
@@ -194,17 +209,15 @@ export default function Recording() {
     } finally {
       setIsProcessing(false);
     }
-  }, [audioBlob, transcribeMutation, suggestMutation, collections.data]);
+  }, [audioBlob, pendingUpload, uploadAudioForReview, transcribeMutation, suggestMutation, collections.data]);
 
   const confirmSave = useCallback(async () => {
     if (!audioBlob) return;
     setIsProcessing(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", audioBlob, `echo-${Date.now()}.webm`);
-      const uploadResp = await fetch("/api/upload", { method: "POST", body: formData });
-      const uploadData = await uploadResp.json();
+      const upload = pendingUpload ?? await uploadAudioForReview();
+      setPendingUpload(upload);
 
       let unlockDate = null;
       let sealDate = null;
@@ -215,8 +228,8 @@ export default function Recording() {
       }
 
       const echo = await createEchoMutation.mutateAsync({
-        audioKey: uploadData.key,
-        audioUrl: uploadData.url,
+        audioKey: upload.key,
+        audioUrl: upload.url,
         transcript: null,
         durationSec: duration,
         ambience: ambience,
@@ -236,6 +249,7 @@ export default function Recording() {
 
       setShowConfirmation(false);
       setAudioBlob(null);
+      setPendingUpload(null);
       setDuration(0);
       // Clear draft persistence once the echo is successfully preserved
       try {
@@ -249,7 +263,7 @@ export default function Recording() {
     } finally {
       setIsProcessing(false);
     }
-  }, [audioBlob, mode, ambience, duration, unlockDays, selectedMood, selectedCollectionId, title, createEchoMutation, updateEchoMutation]);
+  }, [audioBlob, pendingUpload, uploadAudioForReview, mode, ambience, duration, unlockDays, selectedMood, selectedCollectionId, title, createEchoMutation, updateEchoMutation]);
 
   const audioUrlRef = useRef<string | null>(null);
 
@@ -290,16 +304,8 @@ export default function Recording() {
     setSelectedMood(null);
     setSelectedCollectionId(null);
     setTitle("");
+    setPendingUpload(null);
   }, []);
-
-  const greeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 5) return "Still awake?";
-    if (hour < 12) return "Good morning.";
-    if (hour < 17) return "Good afternoon.";
-    if (hour < 21) return "Good evening.";
-    return "It's late.";
-  };
 
   // Onboarding
   if (hasShownOnboarding) {
@@ -345,9 +351,11 @@ export default function Recording() {
   return (
     <div className="max-w-lg mx-auto px-4 pt-6">
       {/* Greeting */}
-      <div className="mb-8 sacred-reveal">
-        <h1 className="font-serif-sacred text-2xl text-foreground tracking-wide">{greeting()}</h1>
+      <div className="mb-8 sacred-reveal" aria-live="polite">
+        <p className="text-[10px] font-serif-sacred uppercase tracking-[0.2em] text-amber/75">Today&apos;s quiet ritual</p>
+        <h1 className="mt-2 font-serif-sacred text-2xl text-foreground tracking-wide">{getRitualGreeting(new Date().getHours())}</h1>
         <p className="text-muted-foreground/70 text-sm mt-1.5 font-light">What echoes through you today?</p>
+        <p className="mt-3 max-w-sm border-l border-amber/30 pl-3 text-xs leading-relaxed text-muted-foreground/55">{getRitualPrompt(mode)}</p>
       </div>
 
       {/* Mode toggle */}
@@ -420,11 +428,12 @@ export default function Recording() {
             <div className="flex items-end gap-[2px] h-12" ref={waveformRef}></div>
             <button
               onClick={stopRecording}
+              aria-label="Stop recording"
               className="w-14 h-14 rounded-full bg-destructive/60 border border-destructive/30 flex items-center justify-center hover:bg-destructive/80 transition-all duration-300 active:scale-95"
             >
               <Square className="h-5 w-5 text-destructive-foreground" />
             </button>
-            <span className="text-muted-foreground/70 text-sm tabular-nums font-light">
+            <span aria-live="off" className="text-muted-foreground/70 text-sm tabular-nums font-light">
               {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, "0")}
             </span>
           </div>
@@ -433,7 +442,7 @@ export default function Recording() {
             <div className="relative w-16 h-16 rounded-full bg-amber/8 border border-amber/20 flex items-center justify-center glow-amber">
               <Sparkle className="h-6 w-6 text-amber/70" />
             </div>
-            <span className="text-muted-foreground/70 text-sm font-light">
+            <span aria-live="polite" className="text-muted-foreground/70 text-sm font-light">
               {Math.floor(duration / 60)}:{(duration % 60).toString().padStart(2, "0")} recorded
             </span>
             <div className="flex items-center gap-3">

@@ -225,10 +225,10 @@
 ## APK-first validation fallback (Aug 14)
 
 - [x] Produce a new preview APK containing the validated native-only embedded Android bundle, independent of the Expo Go proxy path
-- [ ] Verify the installed APK shows the `REBUILD 02 · GUARDED LOCAL VAULT` interface and opens the recording screen on the Realme C67
-- [ ] Retire the proxy-based Expo Go test path once the standalone bundle is confirmed on-device
+- [x] Verify the installed APK shows the `REBUILD 02 · GUARDED LOCAL VAULT` interface and opens the recording screen on the Realme C67
+- [x] Retire the proxy-based Expo Go test path once the standalone bundle is confirmed on-device
 - [ ] Retrieve and test a direct APK artifact URL that downloads from the Realme C67 messaging flow without relying on the Expo build webpage
-- [ ] Download the signed APK and rehost it behind a simple public file URL that works when pasted into Chrome on the Realme C67
+- [x] Download the signed APK and rehost it behind a simple public file URL that works when pasted into Chrome on the Realme C67
 
 ## Authenticated branded mobile rebuild (Aug 14)
 
@@ -236,3 +236,14 @@
 - [x] Reintroduce a user-initiated OAuth sign-in and sign-out path that performs no work during app startup
 - [x] Add tests proving that unauthenticated startup remains static and sign-in is invoked only after an explicit tap
 - [ ] Build and validate the authenticated Echoes APK on the Realme C67 without loss of the repaired rendering
+
+## Final product elevation and GitHub handoff (Aug 14)
+
+- [x] Audit current web and Android flows to select high-impact, code-verifiable daily-journaling improvements
+- [x] Elevate the web Vault and recording ritual with clearer daily orientation, accessible feedback, and refined empty and saved states
+- [x] Elevate the Android Vault, Record, and Settings routes with practical daily-use guidance, accessible controls, and resilient local-data states
+- [x] Update README documentation for the stable native-only Android architecture, explicit authentication boundary, and direct APK installation
+- [x] Add or extend focused regression tests for every final elevation behavior
+- [x] Validate web rendering, web tests, mobile type safety, mobile tests, and an Android production JavaScript export
+- [ ] Save the finalized checkpoint and push the completed repository state to the connected GitHub remote
+- [x] Make the live Shopify smoke test accurately tolerate an intentionally empty catalog while retaining response-shape coverage

@@ -62,6 +62,13 @@ A personal audio journaling web app with two modes — **Vault** (private memory
 - One-tap full archive export (zip of audio + JSON metadata)
 - Account deletion
 
+### 11. Android Companion
+- A native **local-first Vault** designed for daily voice journaling on Android
+- One deterministic private reflection prompt per day, generated locally without network or storage reads
+- A bounded recording state machine with explicit start, stop, save, error, and reset transitions
+- A visible local-data promise: audio is saved to the device before any optional sync is considered
+- An optional secure sign-in control in Settings; it is only invoked after a deliberate user tap
+
 ---
 
 ## Micro-Interactions (Recent Additions)
@@ -88,11 +95,11 @@ A personal audio journaling web app with two modes — **Vault** (private memory
 
 ### Mobile App (echoes-mobile/)
 - **Framework**: Expo SDK 54 (React Native)
-- **Styling**: NativeWind (Tailwind CSS for React Native)
+- **Styling**: Explicit React Native `StyleSheet` layouts for the active Android routes
 - **Navigation**: Expo Router 6
 - **Recording**: expo-av + expo-audio
-- **Backend connection**: Same API at https://echoesvault-9awqy2br.manus.space
-- **Auth**: Real Manus OAuth via in-app browser + session token deep-link handoff (see Mobile Auth Flow below)
+- **Persistence**: Local file storage and AsyncStorage metadata, hydrated only after the Vault mounts
+- **Authentication**: Optional, user-initiated secure sign-in in Settings; no sign-in, redirect, query, or storage work occurs during startup
 
 ### Micro-interaction Components
 
@@ -165,28 +172,32 @@ Auto-publish is enabled — every checkpoint is automatically deployed to produc
 
 ---
 
-## Mobile Auth Flow
+## Mobile Stability Architecture
 
-The mobile app uses a real session — no placeholders:
+The Android companion intentionally prioritizes a dependable opening experience over background work. Its root layout is static: it has **no startup-time redirect, automatic sign-in, deep-link listener, server query, storage read, subscription, or `useSyncExternalStore` integration**. The Vault performs one cancel-safe local hydration only after its native screen mounts. Recording begins only after an explicit press, and saving remains local-first.
 
-1. Tapping **Sign in via Manus** opens the Manus OAuth page in an in-app browser with `redirectUri` set to the app's own deep link (`echoes://session`) and an encoded `state`.
-2. After sign-in, the OAuth portal forwards the code to the backend callback, which verifies the user, mints a session token (HS256 JWT — the same token the web client receives), and redirects to `echoes://session?sessionToken=...`.
-3. The root layout's deep-link listener (`app/_layout.tsx`) captures the token, verifies it against `POST /api/mobile/session/verify`, stores it in AsyncStorage, and closes the browser.
-4. Every API request sends `Authorization: Bearer <token>`; sign-out clears the session.
+Visible mobile routes use React Native `StyleSheet` definitions instead of relying on CSS-to-native transformation at runtime. This avoids a class transformation failure leaving route content as unstructured text and icons. The architecture and the reasons for these constraints are maintained in [`echoes-mobile/REBUILD-GUARDRAILS.md`](../echoes-mobile/REBUILD-GUARDRAILS.md).
 
-Backend endpoints: `GET /api/mobile/me`, `POST /api/mobile/session/verify`, plus the deep-link branch in the standard OAuth callback (`server/mobile-session.ts`).
+### Optional Secure Sign-In
 
-## Mobile Testing
+Echoes is useful without an account. The user can open **Settings** and choose **Sign in securely** when they are ready to connect an account. Only that deliberate action dynamically loads the browser authentication client. Cancellation and failure leave local recordings unchanged, and the Settings card communicates the result without affecting the rest of the app.
 
-To test on Android:
+## Mobile Testing and Android Installation
 
-1. Install Expo Go from the Play Store.
-2. In the `echoes-mobile/` directory: `npx expo start` and scan the QR code with Expo Go.
-3. Verify with TypeScript: `cd echoes-mobile && npx tsc --noEmit` (0 errors).
-4. The app bundled successfully against the latest Expo SDK and routes are defined for Record, Timeline, Future, and Insights tabs.
+The mobile project has focused tests for the recording reducer, safe hydration, local-recording snapshot behavior, daily ritual selection, and explicit authentication behavior.
 
-For production build:
 ```bash
 cd echoes-mobile
-npx eas build --platform android
+npx tsc --noEmit
+npx vitest run
+npx expo export --platform android --output-dir /tmp/echoes-android-export
 ```
+
+For a device-installable Android build:
+
+```bash
+cd echoes-mobile
+npx eas build --platform android --profile preview
+```
+
+Use the direct `.apk` artifact URL from the completed build in Chrome on Android. The browser should download the package, after which Android can install it as an update. Avoid relying on Expo Go’s recent-project list for release verification, because it can reopen an older cached development session instead of the intended project URL.
