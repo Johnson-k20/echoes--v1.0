@@ -224,6 +224,15 @@
 
 ## APK-first validation fallback (Aug 14)
 
-- [ ] Produce a new preview APK containing the validated native-only embedded Android bundle, independent of the Expo Go proxy path
+- [x] Produce a new preview APK containing the validated native-only embedded Android bundle, independent of the Expo Go proxy path
 - [ ] Verify the installed APK shows the `REBUILD 02 · GUARDED LOCAL VAULT` interface and opens the recording screen on the Realme C67
 - [ ] Retire the proxy-based Expo Go test path once the standalone bundle is confirmed on-device
+- [ ] Retrieve and test a direct APK artifact URL that downloads from the Realme C67 messaging flow without relying on the Expo build webpage
+- [ ] Download the signed APK and rehost it behind a simple public file URL that works when pasted into Chrome on the Realme C67
+
+## Authenticated branded mobile rebuild (Aug 14)
+
+- [x] Restore the mobile app name and visible identity from temporary Rebuild labeling to Echoes
+- [x] Reintroduce a user-initiated OAuth sign-in and sign-out path that performs no work during app startup
+- [x] Add tests proving that unauthenticated startup remains static and sign-in is invoked only after an explicit tap
+- [ ] Build and validate the authenticated Echoes APK on the Realme C67 without loss of the repaired rendering
