@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { trpc } from "@/lib/trpc";
+import { useAsyncResource } from "@/hooks/useAsyncResource";
+import { insightService } from "@/services/insightService";
 import { Sparkles, Calendar } from "lucide-react";
 import { ScrollReveal } from "@/components/ScrollReveal";
 
@@ -10,7 +11,7 @@ export default function Insights() {
   }, []);
 
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-  const insight = trpc.insights.get.useQuery({ periodMonth: selectedMonth });
+  const insight = useAsyncResource(() => insightService.getByMonth(selectedMonth), [selectedMonth]);
 
   const availableMonths = useMemo(() => {
     const months: string[] = [];

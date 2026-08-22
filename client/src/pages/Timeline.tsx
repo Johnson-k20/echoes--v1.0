@@ -1,36 +1,18 @@
 import { useState, useMemo } from "react";
-import { trpc } from "@/lib/trpc";
+import { useAsyncResource } from "@/hooks/useAsyncResource";
+import { journalService } from "@/services/journalService";
+import type { JournalEntry } from "@/types/api";
 import { Lock, Mic, Clock, Sparkle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { ParallaxTilt } from "@/components/ParallaxTilt";
 
-interface EchoWithUnlock {
-  id: number;
-  userId: number;
-  audioUrl: string | null;
-  audioKey: string;
-  transcript: string | null;
-  durationSec: number;
-  createdAt: Date;
-  mood: string | null;
-  collectionId: number | null;
-  ambience: string | null;
-  title: string | null;
-  mode: "vault" | "future_self";
-  sealDate: Date | null;
-  unlockDate: Date | null;
-  encryptedAudioKey: string | null;
-  encrypted: boolean;
-  isUnlocked: boolean;
-}
-
 export default function Timeline() {
-  const echoes = trpc.echoes.list.useQuery(undefined);
+  const echoes = useAsyncResource(() => journalService.list(), []);
 
   const grouped = useMemo(() => {
     if (!echoes.data) return [];
-    const groups: Record<string, EchoWithUnlock[]> = {};
+    const groups: Record<string, JournalEntry[]> = {};
     echoes.data.forEach(e => {
       const date = new Date(e.createdAt);
       const key = format(date, "MMMM yyyy");

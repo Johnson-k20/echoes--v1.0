@@ -1,17 +1,19 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useAsyncResource } from "@/hooks/useAsyncResource";
+import { journalService } from "@/services/journalService";
 import { Button } from "@/components/ui/button";
 import { Lock, LockOpen, Clock, Sparkle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ScrollReveal } from "@/components/ScrollReveal";
 
 export default function FutureSelf() {
-  const sealedLetters = trpc.echoes.byMode.useQuery({ mode: "future_self" });
-  const [revealedId, setRevealedId] = useState<number | null>(null);
+  const sealedLetters = useAsyncResource(() => journalService.listByMode("future_self"), []);
+  const [revealedId, setRevealedId] = useState<string | null>(null);
 
-  const revealedEcho = trpc.echoes.get.useQuery(
-    { id: revealedId! },
-    { enabled: revealedId !== null }
+  const revealedEcho = useAsyncResource(
+    () => journalService.getById(revealedId!),
+    [revealedId],
+    revealedId !== null,
   );
 
   const locked = sealedLetters.data?.filter(e => !e.isUnlocked) || [];

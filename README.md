@@ -1,203 +1,162 @@
-# Echoes
+# Echoes — MERN Learning Laboratory
 
-A personal audio journaling web app with two modes — **Vault** (private memory archive) and **Future Self** (time-locked, encrypted messages to yourself).
+Echoes is a voice-first personal journal with two preserved product modes: **The Vault**, for quick reflection and memory capture, and **Future Self**, for letters designed to unlock later. Its dark charcoal, amber, glass, grain, ritual, and sacred-geometry interface remains intact. What has changed is the architecture beneath it: the application is now a **production-looking React UI shell paired with an intentionally unfinished Express and MongoDB backend laboratory**.
 
-**Live URL**: https://echoesvault-9awqy2br.manus.space
+> **The frontend is the product. The backend is the exercise.** You should be able to open Echoes, understand what each screen is meant to do, and then implement the data, security, storage, AI, and time-locking behavior yourself.
 
----
+## What is preserved
 
-## Features
+| Preserved product surface | What still works without a backend |
+|---|---|
+| Vault, recording, archive, collections, Future Self, insights, and settings routes | Every visual route remains navigable under the development-only auth bypass. |
+| Dark charcoal and amber design system | Typography, spacing, glass panels, animated grain, sacred dividers, responsive layouts, and motion remain in `client/src`. |
+| Recording ritual interaction | Browser recording controls, local preview, local download, and temporary UI feedback remain frontend concerns. |
+| Loading, empty, success, and error-oriented presentation | The interface communicates intended product states using isolated development fixtures. |
+| Service boundaries | The UI calls named services in `client/src/services/`, rather than a generated RPC client. |
 
-### 1. Design System
-- Deep charcoal background (`#0f0e0d`) with amber accent (`#f59e0b`)
-- Cormorant Garamond (serif) + Inter (sans-serif) typographic pairing
-- Ethereal/sacred aesthetic: ambient orbs, particle field, glassmorphic cards, candlelight glow
-- Globally defined CSS variables for consistent theming
-- Mobile-first responsive layout
+## What was intentionally removed
 
-### 2. Public Landing Page
-- Asymmetric layout introducing both modes (Vault and Future Self)
-- Brand copy with atmospheric depth
-- Sign-in call-to-action
+The finished production implementation was removed so it cannot silently solve the learning work for you. The project no longer contains the generated RPC stack, hosted OAuth workflow, Drizzle ORM schema and migrations, MySQL integration, cloud storage helpers, transcription provider implementation, LLM implementation, or production-specific backend runtime. The client contains no production key, provider URL, database URL, or cloud credential.
 
-### 3. One-Tap Recording Ritual
-- In-browser recording via MediaRecorder/Web Audio API
-- Animated breathing waveform during capture
-- Ambience selector (silence, rain, café, night)
-- Mode toggle (Vault vs Future Self)
-- Direct upload to S3 on completion
-- Local save option (download recording before uploading)
+The replacement is deliberately incomplete: Express mounts REST route contracts, Mongoose files describe likely model fields, and the development auth route makes pages reachable. Database connection, controller logic, validation, password handling, JWT verification, ownership checks, uploads, transcription, AI, insight generation, and Future Self unlock enforcement are **your work**.
 
-### 4. AI Pipeline on Save
-- Whisper transcription on uploaded audio
-- LLM mood detection and collection suggestion
-- Confirm/override before the echo is saved
+## Architecture now
 
-### 5. Echo Data Model
-- `echoes` table: id, user_id, audio_url, audio_key, transcript, duration_sec, created_at, mood, collection_id, ambience, title, mode (vault | future_self), seal_date, unlock_date, is_unlocked (server-computed)
-- `collections` table: organizational rooms
-- `insight_snapshots` table: monthly qualitative observations
+```text
+Preserved React pages and components
+                |
+                v
+client/src/services/*.ts
+                |
+                v
+Express REST contracts in server/routes/
+                |
+                v
+Your future controllers, services, auth, and Mongoose models
+                |
+                v
+Your MongoDB database and chosen private object storage
+```
 
-### 6. Timeline View
-- Reverse-chronological grouped feed (Today, Yesterday, This Week, Older)
-- Each entry shows duration, mood badge, ambience, and transcript preview
+The client starts with fixtures enabled so the product continues to look complete while the server is unfinished. When you are ready to integrate a feature, set `VITE_USE_FIXTURES=false`, implement only that matching API route, test it, and then switch the matching service from fixture data to the API response.
 
-### 7. Collections
-- Create/delete named collections
-- Add echoes to collections
-- Visual room cards with echo counts
+## Technology inventory
 
-### 8. Future Self Hub
-- Sealing flow with date-picker for unlock date
-- Server-enforced unlock gating (`is_unlocked` computed server-side)
-- Locked-entry UI showing only seal/unlock dates
-- Ceremonial delivery screen on unlock
-
-### 9. Qualitative Insights
-- Monthly LLM-generated observation sentence
-- Recurring word cloud (no numbers, no axes, no streaks)
-
-### 10. Settings & Privacy
-- Plain-language encryption explainer
-- One-tap full archive export (zip of audio + JSON metadata)
-- Account deletion
-
-### 11. Android Companion
-- A native **local-first Vault** designed for daily voice journaling on Android
-- One deterministic private reflection prompt per day, generated locally without network or storage reads
-- A bounded recording state machine with explicit start, stop, save, error, and reset transitions
-- A visible local-data promise: audio is saved to the device before any optional sync is considered
-- An optional secure sign-in control in Settings; it is only invoked after a deliberate user tap
-
----
-
-## Micro-Interactions (Recent Additions)
-
-- **Cursor-follow ambient glow**: Subtle light that follows mouse movement
-- **Scroll progress indicator**: Thin amber line at top of page
-- **Magnetic hover**: Buttons subtly pull toward cursor (1-2px)
-- **Scroll-triggered reveals**: Gentle fade-in via IntersectionObserver
-- **Breathing input borders**: Focused inputs pulse with warm glow
-- **Film grain overlay**: Subtle shifting noise texture for analog warmth
-- **Local recording save**: Download audio file before uploading to server
-
----
-
-## Tech Stack
-
-### Web App
-- **Frontend**: React 19 + Tailwind 4 + shadcn/ui
-- **Backend**: Express 4 + tRPC 11
-- **Database**: MySQL (Drizzle ORM)
-- **Storage**: S3 (audio files)
-- **Auth**: Manus OAuth
-- **AI**: Whisper transcription + LLM (mood/collection/insights)
-
-### Mobile App (echoes-mobile/)
-- **Framework**: Expo SDK 54 (React Native)
-- **Styling**: Explicit React Native `StyleSheet` layouts for the active Android routes
-- **Navigation**: Expo Router 6
-- **Recording**: expo-av + expo-audio
-- **Persistence**: Local file storage and AsyncStorage metadata, hydrated only after the Vault mounts
-- **Authentication**: Optional, user-initiated secure sign-in in Settings; no sign-in, redirect, query, or storage work occurs during startup
-
-### Micro-interaction Components
-
-| Component | Location | Behavior |
+| Layer | Current technology | Purpose in this repository |
 |---|---|---|
-| `ParallaxTilt` | `client/src/components/` | Subtle 1-2deg card rotation that follows cursor; wired on Timeline echo cards and Collections room cards |
-| `LiquidRipple` | `client/src/components/` | Organic press bloom that grows from the exact press point; wired on all recording controls (record buttons, mode/ambience chips, Review & Save, Seal it/Preserve) |
-| `MagneticButton` | `client/src/components/` | Buttons gently attracted toward the cursor on hover; used on destructive actions |
-| `AnimatedGrain` | `client/src/components/` | Shifting film-grain overlay; mounted in the authenticated shell (`AuthLayout`) and the landing page |
-| `CursorGlow` | `client/src/components/` | Warm radial glow that follows the cursor |
-| Scroll progress | `client/src/components/` | Thin amber line across the top of every app page |
-| Success pulse | `client/src/index.css` | Brief scale pulse on save actions (`.success-pulse`) |
-| Breathing border | `client/src/index.css` | Soft amber border animation on focused inputs |
-| Scroll reveal | `client/src/hooks/` | Fade-in-on-scroll for timeline entries and cards |
+| UI | React 19, TypeScript, Vite, Tailwind CSS | Preserved product interface and responsive design system. |
+| Navigation and interaction | Wouter, React components, browser APIs | Route composition, visual interactions, and recording-side user experience. |
+| Client boundary | Typed `fetch` services and fixture store | The contract between the UI and your future REST API. |
+| API scaffold | Express, CORS, JSON body parsing | A small, intentionally incomplete REST application. |
+| Data scaffold | MongoDB and Mongoose schema stubs | A vocabulary for future persistence, not a connected database. |
+| Development process | `concurrently`, `tsx`, Vitest | Start both processes locally and write regression tests as you implement. |
 
----
+## Project map
 
-## Project Structure
+```text
+client/src/
+  pages/                 Preserved Echoes routes and product UI
+  components/            Preserved visual and interaction components
+  services/              REST request contracts and development fixtures
+  types/api.ts           Shared frontend response contracts
 
-```
-echoes/
-├── client/                 # React frontend
-│   ├── src/
-│   │   ├── pages/          # Page components
-│   │   ├── components/     # Shared UI components
-│   │   ├── contexts/       # React contexts
-│   │   ├── hooks/          # Custom hooks
-│   │   └── lib/            # Utilities (tRPC client)
-│   └── index.html
-├── server/                 # Express + tRPC backend
-│   ├── _core/              # Framework plumbing
-│   ├── routers/            # Feature routers (commerce)
-│   ├── db.ts               # Database queries
-│   ├── routers.ts          # Main tRPC router
-│   └── storage.ts          # S3 helpers
-├── drizzle/                # Schema + migrations
-├── shared/                 # Shared constants & types
-└── echoes-mobile/          # Android app (separate Expo project)
-    ├── app/                # Expo Router screens
-    ├── components/         # Shared components
-    └── lib/                # API client
+server/
+  index.ts               Minimal Express application and API mounts
+  routes/                Intentionally incomplete REST endpoint contracts
+  middleware/auth.js     Unsafe development-only identity bypass
+  models/                Mongoose schema stubs; models are not registered yet
+
+BACKEND_ROADMAP.md       Recommended product-specific implementation order
+FEATURE_MAP.md           Screen-to-model-to-route implementation map
+BACKEND_CHALLENGES.md    Beginner, intermediate, and advanced challenges
+IMPLEMENT_YOURSELF.md    The work deliberately left for you
 ```
 
----
+## Installation and environment configuration
 
-## Development
+Install Node.js and MongoDB locally, then install this repository’s dependencies with the package manager recorded in `package.json`.
 
 ```bash
-# Install dependencies
 pnpm install
+```
 
-# Start dev server
+Create a private `.env` file from the environment template shown below. Do not commit this file. The repository intentionally uses placeholders rather than secrets.
+
+| Variable | Example development value | Why you will need it |
+|---|---|---|
+| `PORT` | `5000` | The Express API port. |
+| `MONGO_URI` | `mongodb://127.0.0.1:27017/echoes` | Your own MongoDB connection string. |
+| `JWT_SECRET` | A long random value you generate | Required only when you implement real JWT authentication. |
+| `CLIENT_URL` | `http://localhost:3000` | Express CORS origin for the Vite client. |
+| `WHISPER_API_KEY` | Leave blank until you choose a provider | Future transcription boundary. |
+| `AI_API_KEY` | Leave blank until you choose a provider | Future metadata and insight boundary. |
+
+```dotenv
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/echoes
+JWT_SECRET=replace_with_a_long_random_secret
+CLIENT_URL=http://localhost:3000
+WHISPER_API_KEY=
+AI_API_KEY=
+```
+
+## Start the application
+
+The standard development command starts the preserved Vite client on port `3000` and the unfinished Express API on port `5000` together. Vite proxies browser requests beginning with `/api` to the Express process.
+
+```bash
 pnpm dev
+```
 
-# Run tests
-pnpm test
+For separate terminals, use the explicit process scripts instead:
 
-# Type check
+```bash
+pnpm client
+pnpm server
+```
+
+Use the following checks before and after your own backend changes:
+
+```bash
 pnpm check
-
-# Database migration
-pnpm drizzle-kit generate
+pnpm test
+pnpm build
 ```
 
----
+## MongoDB setup is your first backend exercise
 
-## Deployment
+Start a local MongoDB instance, set `MONGO_URI` in your private environment, and create a database connection module. No connection is supplied by design. The files under `server/models/` are schema **stubs**, not registered models, and no route currently queries MongoDB. This means a healthy `GET /api/health` response confirms only that Express is running; it does not mean persistence has been implemented.
 
-Auto-publish is enabled — every checkpoint is automatically deployed to production at `echoesvault-9awqy2br.manus.space`.
+## REST API inventory
 
----
+| Area | Endpoint contract | Current state |
+|---|---|---|
+| Health | `GET /api/health` | Returns a learning-scaffold status. |
+| Development identity | `GET /api/auth/me`, `POST /api/auth/logout` | Harmless development-only responses. Replace before production. |
+| Authentication | `POST /api/auth/register`, `POST /api/auth/login` | `501 Not Implemented`. |
+| User account | `GET/PATCH/DELETE /api/users/me` | `501 Not Implemented`. |
+| Journal entries | `GET/POST /api/journal-entries`, `GET/PATCH/DELETE /api/journal-entries/:id` | `501 Not Implemented`. |
+| Transcription and metadata | `POST /api/journal-entries/transcribe`, `POST /api/journal-entries/suggest-metadata` | `501 Not Implemented`. |
+| Collections | `GET/POST /api/collections`, `PATCH/DELETE /api/collections/:id` | `501 Not Implemented`. |
+| Future Self | `GET/POST /api/future-letters`, `GET /api/future-letters/:id` | `501 Not Implemented`. |
+| Insights | `GET /api/insights/:periodMonth` | `501 Not Implemented`. |
+| Uploads | `POST /api/uploads` | `501 Not Implemented`. |
+| Archive export | `POST /api/archive` | `501 Not Implemented`. |
 
-## Mobile Stability Architecture
+## Recommended development order
 
-The Android companion intentionally prioritizes a dependable opening experience over background work. Its root layout is static: it has **no startup-time redirect, automatic sign-in, deep-link listener, server query, storage read, subscription, or `useSyncExternalStore` integration**. The Vault performs one cancel-safe local hydration only after its native screen mounts. Recording begins only after an explicit press, and saving remains local-first.
+Begin with a small vertical slice: durable text-only journal entries for the development user. Add a database connection, register `JournalEntry`, write `GET` and `POST` controllers, validate the request, test the result, and switch only `journalService` away from fixtures. Then build collections, authentication and ownership, audio metadata and uploads, Future Self rules, insights, and AI integrations in that order.
 
-Visible mobile routes use React Native `StyleSheet` definitions instead of relying on CSS-to-native transformation at runtime. This avoids a class transformation failure leaving route content as unstructured text and icons. The architecture and the reasons for these constraints are maintained in [`echoes-mobile/REBUILD-GUARDRAILS.md`](../echoes-mobile/REBUILD-GUARDRAILS.md).
+The detailed sequence appears in [BACKEND_ROADMAP.md](./BACKEND_ROADMAP.md). Use [FEATURE_MAP.md](./FEATURE_MAP.md) whenever you want to trace a screen through data, model, route, controller, service, authorization, and response. Read [BACKEND_CHALLENGES.md](./BACKEND_CHALLENGES.md) before choosing a milestone and [IMPLEMENT_YOURSELF.md](./IMPLEMENT_YOURSELF.md) to keep the learning boundary explicit.
 
-### Optional Secure Sign-In
+## Authentication and security warning
 
-Echoes is useful without an account. The user can open **Settings** and choose **Sign in securely** when they are ready to connect an account. Only that deliberate action dynamically loads the browser authentication client. Cancellation and failure leave local recordings unchanged, and the Settings card communicates the result without affecting the rest of the app.
+`server/middleware/auth.js` and the `GET /api/auth/me` response are marked **DEVELOPMENT ONLY**. They inject or return a fixed identity so every preserved page remains reachable. They are not authentication, do not verify a token, do not authorize a resource, and must never be used in production. Before any real deployment, implement password security, JWT verification, ownership checks, input validation, error handling, rate controls, private storage access, and secret management.
 
-## Mobile Testing and Android Installation
+## Realtime and external integrations
 
-The mobile project has focused tests for the recording reducer, safe hydration, local-recording snapshot behavior, daily ritual selection, and explicit authentication behavior.
+Echoes does not currently require Socket.IO or another realtime transport; it is a personal, asynchronous journal. Add realtime only for a concrete future requirement such as multi-device synchronization status or collaboration. The external integrations you may eventually choose to build are private object storage for audio, a transcription provider, an AI provider for metadata and qualitative summaries, and an optional notification mechanism for unlocked Future Self letters. The interface is preserved, but no provider is selected or configured for you.
 
-```bash
-cd echoes-mobile
-npx tsc --noEmit
-npx vitest run
-npx expo export --platform android --output-dir /tmp/echoes-android-export
-```
+## Learning boundary
 
-For a device-installable Android build:
-
-```bash
-cd echoes-mobile
-npx eas build --platform android --profile preview
-```
-
-Use the direct `.apk` artifact URL from the completed build in Chrome on Android. The browser should download the package, after which Android can install it as an update. Avoid relying on Expo Go’s recent-project list for release verification, because it can reopen an older cached development session instead of the intended project URL.
+Treat journal content and recordings as sensitive personal data while you build. Keep secrets out of source control, write tests around access control, and understand the code you add before relying on it. The Echoes Android companion was completed separately and is not changed by this web-focused learning-lab conversion.

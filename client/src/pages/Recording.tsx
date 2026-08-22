@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useAsyncResource } from "@/hooks/useAsyncResource";
+import { collectionService } from "@/services/collectionService";
+import { journalService } from "@/services/journalService";
+import { uploadService } from "@/services/uploadService";
 import { Button } from "@/components/ui/button";
 import { Mic, Square, Sparkle, Download, Play } from "lucide-react";
 import { toast } from "sonner";
@@ -34,7 +37,7 @@ export default function Recording() {
   const [suggestedMood, setSuggestedMood] = useState<string | null>(null);
   const [suggestedTitle, setSuggestedTitle] = useState<string | null>(null);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState(0);
   const [unlockDays, setUnlockDays] = useState(30);
@@ -76,13 +79,8 @@ export default function Recording() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animFrameRef = useRef<number>(0);
 
-  const collections = trpc.collections.list.useQuery(undefined, { enabled: !!user });
-  const transcribeMutation = trpc.echoes.transcribe.useMutation();
-  const suggestMutation = trpc.echoes.suggestMoodAndCollection.useMutation();
-  const createEchoMutation = trpc.echoes.create.useMutation();
-  const updateEchoMutation = trpc.echoes.update.useMutation();
-
-  const recentEchoes = trpc.echoes.recent.useQuery({ limit: 1 }, { enabled: !!user });
+  const collections = useAsyncResource(() => collectionService.list(), [], Boolean(user));
+  const recentEchoes = useAsyncResource(() => journalService.listRecent(1), [], Boolean(user));
 
   useEffect(() => {
     if (recentEchoes.data && recentEchoes.data.length === 0 && !isRecording && !audioBlob) {
@@ -166,13 +164,7 @@ export default function Recording() {
 
   const uploadAudioForReview = useCallback(async (): Promise<PendingUpload> => {
     if (!audioBlob) throw new Error("No recording to upload");
-    const formData = new FormData();
-    formData.append("file", audioBlob, `echo-${Date.now()}.webm`);
-    const uploadResp = await fetch("/api/upload", { method: "POST", body: formData });
-    if (!uploadResp.ok) throw new Error("Upload failed");
-    const uploadData = await uploadResp.json();
-    if (!uploadData.url || !uploadData.key) throw new Error("Upload failed");
-    return { key: uploadData.key, url: uploadData.url };
+    return uploadService.uploadAudio(audioBlob, `echo-${Date.now()}.webm`);
   }, [audioBlob]);
 
   const handleSave = useCallback(async () => {
@@ -183,13 +175,13 @@ export default function Recording() {
       const upload = pendingUpload ?? await uploadAudioForReview();
       setPendingUpload(upload);
 
-      const transcribeResult = await transcribeMutation.mutateAsync({ audioUrl: upload.url });
+      const transcribeResult = await journalService.transcribe(upload.url);
 
       let mood = null;
-      let collection: number | null = null;
+      let collection: string | null = null;
       let echoTitle = null;
       if (transcribeResult.transcript) {
-        const suggestion = await suggestMutation.mutateAsync({ transcript: transcribeResult.transcript });
+        const suggestion = await journalService.suggestMetadata(transcribeResult.transcript);
         mood = suggestion.mood;
         echoTitle = suggestion.title;
         if (suggestion.collection) {
@@ -209,7 +201,7 @@ export default function Recording() {
     } finally {
       setIsProcessing(false);
     }
-  }, [audioBlob, pendingUpload, uploadAudioForReview, transcribeMutation, suggestMutation, collections.data]);
+  }, [audioBlob, pendingUpload, uploadAudioForReview, collections.data]);
 
   const confirmSave = useCallback(async () => {
     if (!audioBlob) return;
@@ -227,7 +219,7 @@ export default function Recording() {
         unlockDate = new Date(now.getTime() + unlockDays * 24 * 60 * 60 * 1000);
       }
 
-      const echo = await createEchoMutation.mutateAsync({
+      const echo = await journalService.create({
         audioKey: upload.key,
         audioUrl: upload.url,
         transcript: null,
@@ -239,8 +231,7 @@ export default function Recording() {
       });
 
       if (echo.id) {
-        await updateEchoMutation.mutateAsync({
-          id: echo.id,
+        await journalService.update(echo.id, {
           mood: selectedMood,
           collectionId: selectedCollectionId,
           title: title || null,
@@ -251,6 +242,8 @@ export default function Recording() {
       setAudioBlob(null);
       setPendingUpload(null);
       setDuration(0);
+      setHasShownOnboarding(false);
+      recentEchoes.reload();
       // Clear draft persistence once the echo is successfully preserved
       try {
         localStorage.removeItem("echoes-draft-mode");
@@ -263,7 +256,7 @@ export default function Recording() {
     } finally {
       setIsProcessing(false);
     }
-  }, [audioBlob, pendingUpload, uploadAudioForReview, mode, ambience, duration, unlockDays, selectedMood, selectedCollectionId, title, createEchoMutation, updateEchoMutation]);
+  }, [audioBlob, pendingUpload, uploadAudioForReview, mode, ambience, duration, unlockDays, selectedMood, selectedCollectionId, title, recentEchoes]);
 
   const audioUrlRef = useRef<string | null>(null);
 
@@ -522,7 +515,7 @@ export default function Recording() {
               <label className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-serif-sacred">Collection</label>
               <select
                 value={selectedCollectionId || ""}
-                onChange={(e) => setSelectedCollectionId(e.target.value ? Number(e.target.value) : null)}
+                onChange={(e) => setSelectedCollectionId(e.target.value || null)}
                 className="mt-2 w-full bg-charcoal/50 border border-border/50 rounded-xl px-4 py-2.5 text-foreground text-sm focus:outline-none focus:border-amber/40 transition-colors duration-300"
               >
                 <option value="">No collection</option>

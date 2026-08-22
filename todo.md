@@ -247,3 +247,15 @@
 - [x] Validate web rendering, web tests, mobile type safety, mobile tests, and an Android production JavaScript export
 - [x] Saved the finalized checkpoint and synchronized the completed repository state to the connected GitHub remote
 - [x] Make the live Shopify smoke test accurately tolerate an intentionally empty catalog while retaining response-shape coverage
+
+## Frontend UI shell and MERN backend laboratory conversion
+
+- [x] Audit every current frontend, server, data, authentication, storage, AI, and deployment dependency and record the UI-to-backend map
+- [x] Preserve the existing Echoes visual system, routes, responsive behavior, interaction patterns, and all non-backend-dependent UX states
+- [x] Replace direct frontend tRPC, OAuth, storage, transcription, and AI integration dependencies with product-specific client service contracts and clear development fixtures
+- [x] Remove production database, cloud, secret, OAuth, and hosted-service implementation paths from the learning backend
+- [x] Create intentionally incomplete Express and MongoDB scaffolding for Echoes users, journal entries, collections, future letters, insights, audio assets, and authentication
+- [x] Define documented REST API contracts and implementation TODOs without solving database, authorization, AI, transcription, or storage behavior
+- [x] Add a safe environment-variable template in the learning documentation, plus setup and architecture maps that explain what remains to implement
+- [x] Validate that the standalone frontend UI shell builds and preserves its primary visual routes without production backend connections
+- [x] Save the converted MERN laboratory as a checkpoint and push it to the connected GitHub repository

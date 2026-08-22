@@ -1,22 +1,21 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { accountService } from "@/services/accountService";
 import { Shield, Download, Trash2, Lock, Key, FileArchive } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollReveal } from "@/components/ScrollReveal";
 
 export default function Settings() {
   const { user, logout } = useAuth();
-  const exportMutation = trpc.archive.export.useMutation();
-  const deleteMutation = trpc.account.delete.useMutation();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      const result = await exportMutation.mutateAsync();
+      const result = await accountService.exportArchive();
       const a = document.createElement("a");
       a.href = result.url;
       a.download = result.filename;
@@ -32,12 +31,15 @@ export default function Settings() {
   };
 
   const handleDelete = async () => {
+    setIsDeleting(true);
     try {
-      await deleteMutation.mutateAsync();
+      await accountService.deleteAccount();
       toast.success("Account deleted. Your data has been removed.");
       window.location.href = "/";
     } catch (err) {
       toast.error("Failed to delete account.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -114,11 +116,11 @@ export default function Settings() {
           </p>
           <Button
             onClick={handleExport}
-            disabled={isExporting || exportMutation.isPending}
+            disabled={isExporting}
             className="bg-amber/80 hover:bg-amber text-primary-foreground w-full shadow-lg shadow-amber/8 transition-all duration-300"
           >
             <Download className="h-4 w-4 mr-2" strokeWidth={1.5} />
-            {isExporting || exportMutation.isPending ? "Preparing archive..." : "Export everything"}
+            {isExporting ? "Preparing archive..." : "Export everything"}
           </Button>
         </div>
       </div>
@@ -158,10 +160,10 @@ export default function Settings() {
                 </Button>
                 <Button
                   onClick={handleDelete}
-                  disabled={deleteMutation.isPending}
+                  disabled={isDeleting}
                   className="flex-1 bg-destructive/80 hover:bg-destructive text-destructive-foreground shadow-lg shadow-destructive/8 transition-all duration-300"
                 >
-                  {deleteMutation.isPending ? "Deleting..." : "Yes, delete everything"}
+                  {isDeleting ? "Deleting..." : "Yes, delete everything"}
                 </Button>
               </div>
             </div>

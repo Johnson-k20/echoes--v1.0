@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useAsyncResource } from "@/hooks/useAsyncResource";
+import { collectionService } from "@/services/collectionService";
+import { journalService } from "@/services/journalService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FolderOpen, Plus, X, Sparkle } from "lucide-react";
@@ -8,22 +10,22 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { ParallaxTilt } from "@/components/ParallaxTilt";
 
 export default function Collections() {
-  const collections = trpc.collections.list.useQuery(undefined);
-  const createMutation = trpc.collections.create.useMutation();
-  const deleteMutation = trpc.collections.delete.useMutation();
+  const collections = useAsyncResource(() => collectionService.list(), []);
   const [newName, setNewName] = useState("");
   const [showCreate, setShowCreate] = useState(false);
-  const [selectedCollection, setSelectedCollection] = useState<number | null>(null);
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
 
-  const echoesByCollection = trpc.echoes.byCollection.useQuery(
-    { collectionId: selectedCollection! },
-    { enabled: selectedCollection !== null }
+  const echoesByCollection = useAsyncResource(
+    () => journalService.listByCollection(selectedCollection!),
+    [selectedCollection],
+    selectedCollection !== null,
   );
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
     try {
-      await createMutation.mutateAsync({ name: newName.trim() });
+      await collectionService.create(newName.trim());
+      collections.reload();
       setNewName("");
       setShowCreate(false);
       toast.success("Collection created.");
@@ -32,10 +34,12 @@ export default function Collections() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
-      await deleteMutation.mutateAsync({ id });
+      await collectionService.remove(id);
       if (selectedCollection === id) setSelectedCollection(null);
+      collections.reload();
+      echoesByCollection.reload();
       toast.success("Collection removed.");
     } catch {
       toast.error("Failed to delete collection.");
